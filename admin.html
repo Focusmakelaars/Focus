@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor — Focus Makelaars</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="assets/logo/beeldmerk-warm-oranje.svg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <style>
+    :root {
+      --warm-oranje: #F15D22;
+      --comfort-beige: #DFD1BB;
+      --helder-beige: #F7F3EB;
+      --iris-bruin: #B0836B;
+      --pupil-zwart: #1D2023;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--pupil-zwart);
+      color: var(--helder-beige);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    header {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .6rem 1rem;
+      background: #15171a;
+      border-bottom: 2px solid var(--warm-oranje);
+      flex-wrap: wrap;
+    }
+    header img { height: 26px; }
+    header .titel { font-weight: 600; letter-spacing: .04em; font-size: .95rem; }
+    select, button {
+      font: inherit; font-size: .88rem;
+      border-radius: 8px; border: 1px solid #3a3d42;
+      background: #24272b; color: var(--helder-beige);
+      padding: .45rem .8rem; cursor: pointer;
+    }
+    select:focus, button:focus { outline: 2px solid var(--warm-oranje); }
+    button:hover { border-color: var(--warm-oranje); }
+    button.primair { background: var(--warm-oranje); border-color: var(--warm-oranje); font-weight: 600; }
+    button.primair:hover { background: #d94e17; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .spacer { flex: 1; }
+    .status { font-size: .82rem; color: #a9a396; }
+    .status.ok { color: #7fc97f; }
+    .status.fout { color: #ff8a72; }
+    main { flex: 1; display: flex; min-height: 0; }
+    .paneel { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .paneel + .paneel { border-left: 2px solid #34373c; }
+    .paneel__kop {
+      padding: .35rem .8rem; font-size: .75rem; letter-spacing: .14em;
+      text-transform: uppercase; color: #8f887b; background: #1a1c1f;
+      display: flex; align-items: center; gap: .8rem;
+    }
+    .paneel__kop label { display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; text-transform: none; letter-spacing: 0; font-size: .8rem; }
+    .CodeMirror { flex: 1; height: auto; font-size: 13px; }
+    iframe { flex: 1; border: 0; background: #fff; width: 100%; }
+    dialog {
+      margin: auto; border: 0; border-radius: 14px; padding: 1.6rem;
+      max-width: 480px; width: calc(100vw - 2rem);
+      background: var(--helder-beige); color: var(--pupil-zwart);
+      font-size: .93rem; line-height: 1.55;
+    }
+    dialog::backdrop { background: rgba(0,0,0,.55); }
+    dialog h2 { font-size: 1.15rem; margin-bottom: .7rem; }
+    dialog p { margin-bottom: .7rem; }
+    dialog ol { margin: 0 0 .9rem 1.2rem; }
+    dialog li { margin-bottom: .3rem; }
+    dialog input {
+      width: 100%; font: inherit; padding: .55rem .7rem;
+      border: 1px solid var(--comfort-beige); border-radius: 8px;
+      margin-bottom: .9rem; background: #fff;
+    }
+    dialog .knoppen { display: flex; gap: .6rem; justify-content: flex-end; }
+    dialog button { background: var(--comfort-beige); color: var(--pupil-zwart); border-color: var(--comfort-beige); }
+    dialog button.primair { background: var(--warm-oranje); border-color: var(--warm-oranje); color: #fff; }
+    dialog a { color: var(--warm-oranje); }
+    @media (max-width: 900px) {
+      main { flex-direction: column; }
+      .paneel + .paneel { border-left: 0; border-top: 2px solid #34373c; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="assets/logo/logo-liggend-white.svg" alt="Focus Makelaars">
+    <span class="titel">Site-editor</span>
+    <select id="pagina" title="Kies pagina">
+      <option value="index.html">Home (index.html)</option>
+      <option value="team.html">Ons team (team.html)</option>
+      <option value="diensten/verkopen.html">Woning verkopen</option>
+      <option value="diensten/aankopen.html">Woning aankopen</option>
+      <option value="diensten/taxeren.html">Taxaties wonen</option>
+      <option value="diensten/taxeren-bog.html">Taxaties BOG</option>
+      <option value="diensten/adviseren.html">Advies</option>
+    </select>
+    <button id="herlaad" title="Laatst gepubliceerde versie opnieuw laden">↺ Herladen</button>
+    <span class="spacer"></span>
+    <span class="status" id="status">…</span>
+    <button id="token">🔑 Token</button>
+    <button class="primair" id="publiceer" disabled>Publiceren</button>
+  </header>
+
+  <main>
+    <section class="paneel">
+      <div class="paneel__kop">HTML-code</div>
+      <textarea id="editor"></textarea>
+    </section>
+    <section class="paneel">
+      <div class="paneel__kop">
+        Live voorbeeld
+        <label><input type="checkbox" id="tekstmodus"> tekst bewerken in voorbeeld</label>
+        <button id="overnemen" style="display:none; font-size:.78rem; padding:.2rem .6rem;">wijzigingen overnemen in code</button>
+      </div>
+      <iframe id="voorbeeld" title="Live voorbeeld"></iframe>
+    </section>
+  </main>
+
+  <dialog id="tokenDialog">
+    <h2>GitHub-token instellen</h2>
+    <p>Om te kunnen publiceren heeft de editor eenmalig een GitHub-token nodig. Dat blijft alleen in <em>deze browser</em> bewaard.</p>
+    <ol>
+      <li>Log in op GitHub als <strong>Focusmakelaars</strong></li>
+      <li>Ga naar <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Settings → Fine-grained tokens</a></li>
+      <li>Repository access: <strong>Only select repositories → Focusmakelaars/Focus</strong></li>
+      <li>Permissions → Contents: <strong>Read and write</strong></li>
+      <li>Genereer en plak het token hieronder</li>
+    </ol>
+    <input type="password" id="tokenInput" placeholder="github_pat_…" autocomplete="off">
+    <div class="knoppen">
+      <button id="tokenWis">Token wissen</button>
+      <button id="tokenAnnuleer">Annuleren</button>
+      <button class="primair" id="tokenBewaar">Bewaren</button>
+    </div>
+  </dialog>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    const OWNER = "Focusmakelaars";
+    const REPO = "Focus";
+    const BRANCH = "main";
+    const SITE = "https://focusmakelaars.github.io/Focus/";
+    const API = `https://api.github.com/repos/${OWNER}/${REPO}/contents/`;
+
+    const $ = (id) => document.getElementById(id);
+    const status = (msg, cls) => { const el = $("status"); el.textContent = msg; el.className = "status " + (cls || ""); };
+
+    let sha = null;          // sha van de geladen versie (nodig voor publiceren)
+    let vuil = false;        // niet-gepubliceerde wijzigingen?
+    let token = localStorage.getItem("focus_editor_token") || "";
+
+    const editor = CodeMirror.fromTextArea($("editor"), {
+      mode: "htmlmixed",
+      lineNumbers: true,
+      lineWrapping: true,
+      theme: "default",
+    });
+
+    // ---------- helpers ----------
+    const b64decode = (b64) => {
+      const bin = atob(b64.replace(/\n/g, ""));
+      const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+      return new TextDecoder("utf-8").decode(bytes);
+    };
+    const b64encode = (str) => {
+      const bytes = new TextEncoder().encode(str);
+      let bin = "";
+      bytes.forEach((b) => (bin += String.fromCharCode(b)));
+      return btoa(bin);
+    };
+    const headers = () => {
+      const h = { Accept: "application/vnd.github+json" };
+      if (token) h.Authorization = "Bearer " + token;
+      return h;
+    };
+    const pad = () => $("pagina").value;
+
+    // ---------- laden ----------
+    async function laad() {
+      status("Laden…");
+      try {
+        const r = await fetch(API + pad() + "?ref=" + BRANCH + "&t=" + Date.now(), { headers: headers() });
+        if (!r.ok) throw new Error("GitHub gaf " + r.status);
+        const data = await r.json();
+        sha = data.sha;
+        editor.setValue(b64decode(data.content));
+        vuil = false;
+        bijwerkKnoppen();
+        toonVoorbeeld();
+        status("Geladen: " + pad(), "ok");
+      } catch (e) {
+        status("Laden mislukt: " + e.message, "fout");
+      }
+    }
+
+    // ---------- voorbeeld ----------
+    let previewTimer = null;
+    function toonVoorbeeld() {
+      const tekstmodus = $("tekstmodus").checked;
+      let html = editor.getValue();
+      // basis-URL zodat relatieve assets van de live site laden
+      const dir = pad().includes("/") ? pad().replace(/[^/]+$/, "") : "";
+      const base = `<base href="${SITE}${dir}" id="__edit_base">`;
+      html = html.replace(/<head([^>]*)>/i, `<head$1>${base}`);
+      if (tekstmodus) {
+        // scripts uitschakelen maar behouden, reveal-animaties direct zichtbaar
+        html = html.replace(/<script(\s|>)/gi, '<script type="text/plain" data-uitgeschakeld$1');
+        html = html.replace(/<\/head>/i, '<style id="__edit_css">.reveal,[data-load]{opacity:1!important;transform:none!important}a{cursor:text}</style></head>');
+      }
+      const frame = $("voorbeeld");
+      frame.srcdoc = html;
+      frame.onload = () => {
+        if (!tekstmodus) return;
+        const doc = frame.contentDocument;
+        if (!doc) return;
+        doc.body.contentEditable = "true";
+        doc.addEventListener("click", (e) => { e.preventDefault(); }, true);
+        doc.addEventListener("input", () => { $("overnemen").style.display = ""; });
+      };
+    }
+    function plandVoorbeeld() {
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(toonVoorbeeld, 500);
+    }
+
+    // wijzigingen uit tekstmodus terug naar de code
+    $("overnemen").addEventListener("click", () => {
+      const doc = $("voorbeeld").contentDocument;
+      if (!doc) return;
+      const kloon = doc.documentElement.cloneNode(true);
+      kloon.querySelector("#__edit_css")?.remove();
+      kloon.querySelector("#__edit_base")?.remove();
+      kloon.querySelectorAll("[contenteditable]").forEach((el) => el.removeAttribute("contenteditable"));
+      kloon.querySelectorAll("script[data-uitgeschakeld]").forEach((s) => {
+        s.removeAttribute("type");
+        s.removeAttribute("data-uitgeschakeld");
+      });
+      let html = "<!DOCTYPE html>\n" + kloon.outerHTML;
+      html = html.replace(/<html([^>]*)><head>/i, "<html$1>\n<head>");
+      editor.setValue(html);
+      $("overnemen").style.display = "none";
+      status("Tekstwijzigingen overgenomen — controleer en publiceer.", "ok");
+    });
+
+    $("tekstmodus").addEventListener("change", () => {
+      $("overnemen").style.display = "none";
+      toonVoorbeeld();
+    });
+
+    // ---------- publiceren ----------
+    async function publiceer() {
+      if (!token) { $("tokenDialog").showModal(); return; }
+      if (!confirm("Publiceren naar de live site?\n\nPagina: " + pad())) return;
+      status("Publiceren…");
+      $("publiceer").disabled = true;
+      try {
+        const r = await fetch(API + pad(), {
+          method: "PUT",
+          headers: { ...headers(), "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: "Bewerkt via site-editor: " + pad(),
+            content: b64encode(editor.getValue()),
+            sha, branch: BRANCH,
+          }),
+        });
+        if (r.status === 409) throw new Error("conflict — de pagina is elders gewijzigd; klik Herladen en probeer opnieuw");
+        if (r.status === 401 || r.status === 403) throw new Error("token ongeldig of verlopen (🔑 Token)");
+        if (!r.ok) throw new Error("GitHub gaf " + r.status);
+        const data = await r.json();
+        sha = data.content.sha;
+        vuil = false;
+        bijwerkKnoppen();
+        status("Gepubliceerd ✓ — live over ± 1 minuut (ververs met Ctrl+F5)", "ok");
+      } catch (e) {
+        status("Publiceren mislukt: " + e.message, "fout");
+        bijwerkKnoppen();
+      }
+    }
+
+    // ---------- ui ----------
+    function bijwerkKnoppen() {
+      $("publiceer").disabled = !vuil;
+      $("publiceer").textContent = vuil ? "Publiceren" : "Gepubliceerd ✓";
+    }
+    editor.on("change", () => {
+      vuil = true;
+      bijwerkKnoppen();
+      plandVoorbeeld();
+    });
+    $("pagina").addEventListener("change", () => {
+      if (vuil && !confirm("Niet-gepubliceerde wijzigingen gaan verloren. Doorgaan?")) return;
+      laad();
+    });
+    $("herlaad").addEventListener("click", () => {
+      if (vuil && !confirm("Niet-gepubliceerde wijzigingen gaan verloren. Doorgaan?")) return;
+      laad();
+    });
+    $("publiceer").addEventListener("click", publiceer);
+    window.addEventListener("beforeunload", (e) => { if (vuil) e.preventDefault(); });
+
+    // token-dialog
+    $("token").addEventListener("click", () => {
+      $("tokenInput").value = token;
+      $("tokenDialog").showModal();
+    });
+    $("tokenBewaar").addEventListener("click", () => {
+      token = $("tokenInput").value.trim();
+      if (token) localStorage.setItem("focus_editor_token", token);
+      $("tokenDialog").close();
+      status(token ? "Token bewaard in deze browser." : "Geen token ingesteld.", token ? "ok" : "");
+    });
+    $("tokenWis").addEventListener("click", () => {
+      token = "";
+      localStorage.removeItem("focus_editor_token");
+      $("tokenInput").value = "";
+      status("Token gewist.");
+    });
+    $("tokenAnnuleer").addEventListener("click", () => $("tokenDialog").close());
+
+    // start
+    laad();
+    if (!token) setTimeout(() => $("tokenDialog").showModal(), 800);
+  })();
+  </script>
+</body>
+</html>
