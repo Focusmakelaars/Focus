@@ -23,8 +23,11 @@ diensten/             detailpagina's, bereikbaar via de Diensten-dropdown, kaart
   taxeren.html          taxaties wonen (NWWI) — verwijst door naar BOG
   taxeren-bog.html      taxaties bedrijfsmatig vastgoed (NRVT/IVS, Focus Taxateurs-logo)
   adviseren.html        advies / woningmarktconsultancy
+team.html             teampagina per vestiging (ankers: #helmond, #eindhoven, …)
+admin.html            online editor: pagina's bewerken + publiceren via GitHub API (vereist PAT)
 assets/css/style.css  volledige styling, merk-tokens als CSS-variabelen
 assets/js/main.js     scroll-reveals + mobiel menu
+assets/img/team/      teamfoto's met warme gloed (oud ERA-logo verwijderd)
 assets/fonts/         Silka (woff2, geconverteerd uit brand-OTF's) + STIX Two Text Italic (variable)
 assets/logo/          officiële logo-SVG's uit de brandmap
 assets/icons/         diensten-iconen (Verkopen/Aankopen/Taxeren/Adviseren) uit de brandmap
