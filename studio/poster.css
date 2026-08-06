@@ -67,6 +67,7 @@
 .p-photo { position: relative; overflow: hidden; background: var(--comfort-beige); }
 .p-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .p-arch { border-radius: 999px 999px 34px 34px; }
+.p-rond { border-radius: 34px; }
 
 .p-pill {
   display: inline-flex; align-items: center;

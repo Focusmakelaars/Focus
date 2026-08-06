@@ -174,7 +174,7 @@ const RENDER = {
   tekoop(v, tel) {
     return `<div class="p-pad">
       ${brandrow("var(--warm-oranje)")}
-      <div class="p-photo p-arch"><img src="${fotoSrc()}" alt=""></div>
+      <div class="p-photo p-rond"><img src="${fotoSrc()}" alt=""></div>
       <span class="p-kicker">${esc(v.kicker)}</span>
       <div class="p-straat" data-fit="46">${esc(v.straat)}</div>
       <div class="p-plaats serif">${esc(v.plaats)}</div>
@@ -345,7 +345,7 @@ async function fontsAlsCSS() {
 }
 async function posterCSSTekst() {
   if (cache.posterCSS) return cache.posterCSS;
-  return (cache.posterCSS = await (await fetch("poster.css?v=1")).text());
+  return (cache.posterCSS = await (await fetch("poster.css?v=2")).text());
 }
 
 async function downloadPNG() {
