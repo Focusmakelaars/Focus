@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus Studio — met oog voor jou</title>
+<meta name="description" content="De huisstijl-studio van Focus Makelaars: maak in een paar klikken on-brand social posts en e-mailhandtekeningen.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
+<link rel="stylesheet" href="poster.css?v=1">
+<link rel="stylesheet" href="studio.css?v=1">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__brand">
+    <span class="topbar__merk" id="topBeeldmerk"></span>
+    <div>
+      <strong>Focus <em>Studio</em></strong>
+      <span>met oog voor jou — voor het hele team</span>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab is-active" data-tab="social" role="tab">Social posts</button>
+    <button class="tab" data-tab="handtekening" role="tab">E-mailhandtekening</button>
+  </nav>
+  <a class="topbar__site" href="../index.html">focusmakelaars.nl →</a>
+</header>
+
+<!-- ================= SOCIAL ================= -->
+<main class="studio" id="tab-social">
+  <aside class="panel">
+
+    <section class="veld reveal" style="--d:0">
+      <h2 class="veld__kop">Wat wil je delen?</h2>
+      <div class="tegels" id="templateKeuze">
+        <button data-t="tekoop"   class="is-active"><span class="tegel__icon">🏡</span>Te koop</button>
+        <button data-t="verkocht"><span class="tegel__icon">🎉</span>Verkocht</button>
+        <button data-t="openhuis"><span class="tegel__icon">☕</span>Open huis</button>
+        <button data-t="gezocht"><span class="tegel__icon">🔎</span>Gezocht</button>
+        <button data-t="team"><span class="tegel__icon">👋</span>Team</button>
+        <button data-t="markt"><span class="tegel__icon">📈</span>Marktupdate</button>
+      </div>
+    </section>
+
+    <section class="veld reveal" style="--d:1">
+      <h2 class="veld__kop">Formaat</h2>
+      <div class="segment" id="formaatKeuze">
+        <button data-f="f45" class="is-active">Post 4:5</button>
+        <button data-f="f11">Vierkant</button>
+        <button data-f="f916">Story</button>
+      </div>
+    </section>
+
+    <section class="veld reveal" style="--d:2" id="fotoVeld">
+      <h2 class="veld__kop">Foto</h2>
+      <label class="drop" id="dropzone">
+        <input type="file" id="fotoInput" accept="image/*" hidden>
+        <span id="dropTekst">Sleep een woningfoto hierheen<br><em>of klik om te kiezen</em></span>
+      </label>
+      <label class="schakel">
+        <input type="checkbox" id="gloedToggle" checked>
+        <span class="schakel__knop"></span>
+        Focus warme gloed <em>— het fotorecept uit het brandbook</em>
+      </label>
+    </section>
+
+    <section class="veld reveal" style="--d:3">
+      <h2 class="veld__kop">Tekst</h2>
+      <div class="inputs" id="inputsWrap"><!-- dynamisch --></div>
+    </section>
+
+    <section class="veld reveal" style="--d:4">
+      <h2 class="veld__kop">Vestiging</h2>
+      <select id="vestigingSelect" class="select"></select>
+    </section>
+
+    <section class="veld veld--acties reveal" style="--d:5">
+      <button class="knop knop--primair" id="downloadBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download PNG
+      </button>
+      <p class="hint" id="downloadHint">1080&nbsp;px, klaar voor Instagram &amp; Facebook</p>
+    </section>
+
+  </aside>
+
+  <section class="podium">
+    <div class="podium__schaal" id="podiumSchaal">
+      <div id="posterHost"><!-- poster --></div>
+    </div>
+  </section>
+</main>
+
+<!-- ================= HANDTEKENING ================= -->
+<main class="studio studio--handtekening is-verborgen" id="tab-handtekening">
+  <aside class="panel">
+    <section class="veld reveal" style="--d:0">
+      <h2 class="veld__kop">Wie ben je?</h2>
+      <select id="sigTeamlid" class="select"></select>
+    </section>
+    <section class="veld reveal" style="--d:1">
+      <h2 class="veld__kop">Zo werkt het</h2>
+      <ol class="stappen">
+        <li>Kies je naam hierboven</li>
+        <li>Klik op <strong>Kopieer handtekening</strong></li>
+        <li>Plak in Outlook of Gmail bij <em>Handtekeningen</em></li>
+      </ol>
+    </section>
+    <section class="veld veld--acties reveal" style="--d:2">
+      <button class="knop knop--primair" id="sigKopieer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Kopieer handtekening
+      </button>
+      <p class="hint" id="sigHint">Wordt gekopieerd mét opmaak</p>
+    </section>
+  </aside>
+  <section class="podium podium--sig">
+    <div class="sigkaart">
+      <div class="sigkaart__balk"><span></span><span></span><span></span> nieuw bericht</div>
+      <div class="sigkaart__mail">
+        <p class="sigkaart__tekst">Beste lezer,<br><br>Zullen we snel eens kennismaken? De koffie staat klaar.<br><br>Met vriendelijke groet,</p>
+        <div id="sigPreview"><!-- handtekening --></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="voet">
+  <p><strong>Focus Studio</strong> is gebouwd op het Focus Brandbook — technologie die persoonlijk contact versterkt. Eén merk, zes vestigingen, <span class="voet__accent">met oog voor jou.</span></p>
+</footer>
+
+<canvas id="werkCanvas" hidden></canvas>
+<script src="data.js?v=1"></script>
+<script src="studio.js?v=1"></script>
+</body>
+</html>

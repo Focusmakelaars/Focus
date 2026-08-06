@@ -1,0 +1,194 @@
+/* ============================================================
+   FOCUS STUDIO — app-interface
+   Volgt het Focus Brandbook: Silka + STIX-accent, helder beige,
+   warm oranje, boogvormen, kickers met streepje.
+   ============================================================ */
+
+@font-face { font-family:"Silka"; src:url("../assets/fonts/Silka-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"Silka"; src:url("../assets/fonts/Silka-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"Silka"; src:url("../assets/fonts/Silka-SemiBold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@font-face { font-family:"Silka"; src:url("../assets/fonts/Silka-Bold.woff2") format("woff2"); font-weight:700; font-display:swap; }
+@font-face { font-family:"Silka"; src:url("../assets/fonts/Silka-Black.woff2") format("woff2"); font-weight:900; font-display:swap; }
+@font-face { font-family:"STIX Two Text"; src:url("../assets/fonts/STIXTwoTextItalic-Var.woff2") format("woff2"); font-weight:400 600; font-style:italic; font-display:swap; }
+
+:root {
+  --warm-oranje:#F15D22; --focus-oranje:#F6871F; --comfort-beige:#DFD1BB;
+  --helder-beige:#F7F3EB; --iris-bruin:#B0836B; --pupil-zwart:#1D2023; --wit:#fff;
+  --ink-soft:#4b4a45;
+  --font-sans:"Silka","Trebuchet MS",sans-serif;
+  --font-serif:"STIX Two Text",Georgia,serif;
+  --schaduw: 0 24px 60px -30px rgba(29,32,35,.35);
+  --ease:cubic-bezier(.22,.8,.32,1);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font-sans); color:var(--pupil-zwart);
+  background:var(--helder-beige);
+  background-image:radial-gradient(1200px 600px at 85% -10%, rgba(246,135,31,.10), transparent 60%);
+  display:flex; flex-direction:column; min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+em{font-family:var(--font-serif);font-style:italic}
+::selection{background:var(--warm-oranje);color:#fff}
+
+/* ---------- topbar ---------- */
+.topbar{
+  display:flex;align-items:center;gap:2rem;
+  padding:1.1rem 2rem;
+  border-bottom:1.5px solid rgba(29,32,35,.08);
+  background:rgba(247,243,235,.85);backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:50;
+}
+.topbar__brand{display:flex;align-items:center;gap:.9rem}
+.topbar__merk svg{width:44px;height:44px;color:var(--warm-oranje);display:block;animation:draai 1.1s var(--ease) both}
+@keyframes draai{from{transform:rotate(-90deg) scale(.6);opacity:0}to{transform:none;opacity:1}}
+.topbar__brand strong{display:block;font-size:1.25rem;font-weight:700;letter-spacing:-.01em}
+.topbar__brand strong em{color:var(--warm-oranje);font-weight:500}
+.topbar__brand span{display:block;font-size:.78rem;color:var(--ink-soft)}
+.tabs{margin-inline:auto;display:flex;gap:.4rem;background:#fff;border-radius:999px;padding:.35rem;box-shadow:inset 0 0 0 1.5px rgba(29,32,35,.07)}
+.tab{padding:.6rem 1.4rem;border-radius:999px;font-weight:600;font-size:.95rem;color:var(--ink-soft);transition:.25s}
+.tab.is-active{background:var(--pupil-zwart);color:#fff}
+.tab:not(.is-active):hover{color:var(--pupil-zwart)}
+.topbar__site{font-size:.9rem;font-weight:600;color:var(--warm-oranje);text-decoration:none}
+.topbar__site:hover{text-decoration:underline}
+
+/* ---------- layout ---------- */
+.studio{flex:1;display:grid;grid-template-columns:400px 1fr;grid-template-rows:minmax(0,1fr);min-height:0}
+.is-verborgen{display:none!important}
+
+.panel{
+  padding:1.6rem 1.6rem 2.4rem;
+  overflow-y:auto;
+  border-right:1.5px solid rgba(29,32,35,.08);
+  display:flex;flex-direction:column;gap:1.15rem;
+}
+.reveal{animation:op .7s var(--ease) both;animation-delay:calc(var(--d,0)*.08s)}
+@keyframes op{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.veld{background:#fff;border-radius:22px;padding:1.25rem 1.35rem;box-shadow:0 10px 30px -24px rgba(29,32,35,.4)}
+.veld__kop{
+  display:flex;align-items:center;gap:.6rem;
+  font-size:.72rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--warm-oranje);margin-bottom:.95rem;
+}
+.veld__kop::before{content:"";width:1.6rem;height:2px;background:var(--warm-oranje);border-radius:2px}
+
+/* template-tegels */
+.tegels{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem}
+.tegels button{
+  display:flex;flex-direction:column;align-items:center;gap:.35rem;
+  padding:.8rem .4rem;border-radius:16px;
+  font-size:.8rem;font-weight:600;color:var(--ink-soft);
+  box-shadow:inset 0 0 0 1.5px rgba(29,32,35,.1);
+  transition:.22s var(--ease);
+}
+.tegel__icon{font-size:1.25rem}
+.tegels button:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1.5px rgba(241,93,34,.5)}
+.tegels button.is-active{background:var(--pupil-zwart);color:#fff;box-shadow:none}
+
+/* segment (formaat) */
+.segment{display:flex;background:var(--helder-beige);border-radius:999px;padding:.3rem;gap:.25rem}
+.segment button{flex:1;padding:.55rem .5rem;border-radius:999px;font-size:.85rem;font-weight:600;color:var(--ink-soft);transition:.22s}
+.segment button.is-active{background:#fff;color:var(--pupil-zwart);box-shadow:0 4px 14px -6px rgba(29,32,35,.35)}
+
+/* foto */
+.drop{
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  min-height:7.5rem;border-radius:18px;cursor:pointer;
+  border:2px dashed var(--comfort-beige);background:var(--helder-beige);
+  font-size:.9rem;color:var(--ink-soft);line-height:1.5;
+  transition:.25s;background-size:cover;background-position:center;
+  overflow:hidden;
+}
+.drop:hover,.drop.is-over{border-color:var(--warm-oranje);color:var(--warm-oranje)}
+.drop.heeft-foto span{background:rgba(29,32,35,.66);color:#fff;padding:.45rem .9rem;border-radius:999px;font-size:.8rem}
+.schakel{display:flex;align-items:center;gap:.6rem;margin-top:.85rem;font-size:.85rem;font-weight:500;cursor:pointer;line-height:1.35}
+.schakel em{color:var(--ink-soft);font-size:.92em}
+.schakel input{display:none}
+.schakel__knop{flex:0 0 auto;width:2.4rem;height:1.35rem;border-radius:999px;background:var(--comfort-beige);position:relative;transition:.25s}
+.schakel__knop::after{content:"";position:absolute;inset:.18rem auto .18rem .2rem;width:1rem;border-radius:50%;background:#fff;transition:.25s var(--ease)}
+.schakel input:checked+.schakel__knop{background:var(--warm-oranje)}
+.schakel input:checked+.schakel__knop::after{transform:translateX(1.02rem)}
+
+/* inputs */
+.inputs{display:flex;flex-direction:column;gap:.7rem}
+.inputs label{display:block;font-size:.78rem;font-weight:600;color:var(--ink-soft);margin-bottom:.3rem}
+.inputs input,.inputs textarea,.select{
+  width:100%;padding:.7rem .9rem;border-radius:13px;
+  border:1.5px solid rgba(29,32,35,.12);background:var(--helder-beige);
+  font-family:inherit;font-size:.95rem;color:var(--pupil-zwart);
+  transition:border-color .2s;
+}
+.inputs textarea{resize:vertical;min-height:3.6rem}
+.inputs input:focus,.inputs textarea:focus,.select:focus{outline:none;border-color:var(--warm-oranje)}
+.select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231D2023' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .9rem center;background-size:1rem;cursor:pointer}
+
+/* acties */
+.veld--acties{background:var(--pupil-zwart)}
+.knop{
+  display:inline-flex;align-items:center;justify-content:center;gap:.6rem;
+  width:100%;padding:.95rem 1.5rem;border-radius:999px;
+  font-weight:600;font-size:1rem;transition:.3s var(--ease);
+}
+.knop svg{width:1.1em;height:1.1em}
+.knop--primair{background:var(--warm-oranje);color:#fff}
+.knop--primair:hover{transform:translateY(-2px);box-shadow:0 14px 30px -12px rgba(241,93,34,.7)}
+.knop--primair:active{transform:none}
+.knop.is-bezig{opacity:.6;pointer-events:none}
+.hint{margin-top:.6rem;text-align:center;font-size:.78rem;color:var(--comfort-beige)}
+
+/* ---------- podium ---------- */
+.podium{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  padding:2.5rem;overflow:hidden;min-height:0;
+}
+.podium::before{
+  content:"";position:absolute;width:56rem;height:56rem;border-radius:50%;
+  border:1.5px solid rgba(176,131,107,.25);
+  top:-24rem;right:-18rem;pointer-events:none;
+}
+.podium::after{
+  content:"";position:absolute;width:40rem;height:40rem;border-radius:50%;
+  border:1.5px solid rgba(241,93,34,.18);
+  bottom:-20rem;left:-14rem;pointer-events:none;
+}
+.podium__schaal{transform-origin:center;filter:drop-shadow(0 30px 60px rgba(29,32,35,.28));animation:fadein .8s var(--ease) .2s both}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+/* ---------- handtekening-tab ---------- */
+.stappen{padding-left:1.2rem;display:flex;flex-direction:column;gap:.5rem;font-size:.92rem;color:var(--ink-soft)}
+.stappen li::marker{color:var(--warm-oranje);font-weight:700}
+.podium--sig{align-items:flex-start;padding-top:4rem}
+.sigkaart{width:min(680px,92%);border-radius:20px;overflow:hidden;box-shadow:var(--schaduw);animation:op .8s var(--ease) .15s both}
+.sigkaart__balk{
+  background:var(--pupil-zwart);color:rgba(247,243,235,.7);
+  padding:.7rem 1.1rem;font-size:.8rem;display:flex;align-items:center;gap:.45rem;
+}
+.sigkaart__balk span{width:.7rem;height:.7rem;border-radius:50%;background:var(--comfort-beige);opacity:.5}
+.sigkaart__balk span:first-child{background:var(--warm-oranje);opacity:1}
+.sigkaart__mail{background:#fff;padding:2rem 2.2rem 2.4rem}
+.sigkaart__tekst{font-size:.95rem;color:var(--ink-soft);margin-bottom:1.4rem}
+
+/* ---------- footer ---------- */
+.voet{padding:1.1rem 2rem;border-top:1.5px solid rgba(29,32,35,.08);font-size:.82rem;color:var(--ink-soft);text-align:center}
+.voet__accent{font-family:var(--font-serif);font-style:italic;color:var(--warm-oranje)}
+
+/* ---------- app-gedrag op desktop: alleen het paneel scrolt ---------- */
+@media (min-width:961px){
+  body{height:100vh;overflow:hidden}
+  .studio{overflow:hidden}
+  .panel{min-height:0}
+}
+
+/* ---------- responsive ---------- */
+@media (max-width:960px){
+  .studio{grid-template-columns:1fr}
+  .panel{border-right:0;border-bottom:1.5px solid rgba(29,32,35,.08)}
+  .podium{padding:1.5rem;min-height:70vh}
+  .topbar{flex-wrap:wrap;gap:.8rem}
+  .tabs{order:3;width:100%;justify-content:center}
+  .topbar__site{margin-left:auto}
+}
