@@ -69,6 +69,20 @@
 .p-arch { border-radius: 999px 999px 34px 34px; }
 .p-rond { border-radius: 34px; }
 
+.p-placeholder {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  background: var(--comfort-beige); color: var(--pupil-zwart);
+  text-align: center; padding: 40px;
+}
+.p-placeholder::before {
+  content: ""; position: absolute; inset: 26px;
+  border: 3px dashed rgba(29,32,35,.28); border-radius: 24px;
+}
+.p-placeholder svg { width: 96px; height: 96px; color: var(--warm-oranje); margin-bottom: 14px; }
+.p-placeholder strong { font-size: 42px; font-weight: 600; }
+.p-placeholder .serif { font-size: 32px; color: var(--iris-bruin); }
+
 .p-pill {
   display: inline-flex; align-items: center;
   background: var(--warm-oranje); color: var(--wit);

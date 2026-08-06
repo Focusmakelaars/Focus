@@ -54,10 +54,19 @@ function laadImg(src) {
 }
 
 const STANDAARD_FOTO = {
-  tekoop:   "../assets/img/hero-stel-raam.png",
+  tekoop:   null,  // geen voorbeeldfoto: placeholder maakt duidelijk dat hier de upload komt
   verkocht: "../assets/img/stel-sleutels.png",
   openhuis: "../assets/img/stel-tuin.png"
 };
+
+function fotoBlok(extraClass) {
+  if (fotoSrc()) return `<div class="p-photo ${extraClass}"><img src="${fotoSrc()}" alt=""></div>`;
+  return `<div class="p-photo ${extraClass}"><div class="p-placeholder">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+    <strong>Hier komt jouw woningfoto</strong>
+    <span class="serif">upload of sleep &#8217;m in het linkerpaneel</span>
+  </div></div>`;
+}
 
 /* ---------- warme gloed (fotorecept uit het brandbook) ---------- */
 async function warmeGloed(dataURL) {
@@ -174,7 +183,7 @@ const RENDER = {
   tekoop(v, tel) {
     return `<div class="p-pad">
       ${brandrow("var(--warm-oranje)")}
-      <div class="p-photo p-rond"><img src="${fotoSrc()}" alt=""></div>
+      ${fotoBlok("p-rond")}
       <span class="p-kicker">${esc(v.kicker)}</span>
       <div class="p-straat" data-fit="46">${esc(v.straat)}</div>
       <div class="p-plaats serif">${esc(v.plaats)}</div>
@@ -256,9 +265,8 @@ async function render() {
   const sj = SJABLONEN[state.template];
   if (sj.foto && !state.fotoIsUpload) {
     const url = STANDAARD_FOTO[state.template];
-    const d = await fetchDataURL(url);
+    state.fotoOrigineel = url ? await fetchDataURL(url) : null;
     if (mijnBeurt !== renderTeller) return;
-    state.fotoOrigineel = d;
     state.fotoGloed = null; // brandfoto's zijn al warm gegradeerd
   }
   const velden = { ...state.velden };
@@ -345,7 +353,7 @@ async function fontsAlsCSS() {
 }
 async function posterCSSTekst() {
   if (cache.posterCSS) return cache.posterCSS;
-  return (cache.posterCSS = await (await fetch("poster.css?v=2")).text());
+  return (cache.posterCSS = await (await fetch("poster.css?v=3")).text());
 }
 
 async function downloadPNG() {
