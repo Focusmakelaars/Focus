@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
 <link rel="stylesheet" href="poster.css?v=3">
-<link rel="stylesheet" href="studio.css?v=1">
+<link rel="stylesheet" href="studio.css?v=2">
 </head>
 <body>
 
@@ -114,6 +114,20 @@
       </button>
       <p class="hint" id="sigHint">Wordt gekopieerd mét opmaak</p>
     </section>
+
+    <section class="veld reveal" style="--d:3">
+      <h2 class="veld__kop">Voor Realworks / CRM</h2>
+      <p class="uitleg">Stel de e-mailtemplate eenmalig in: plak de HTML-code in het template-veld van Realworks, of gebruik het .html-bestand.</p>
+      <button class="knop knop--tweede" id="sigHtmlKopieer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Kopieer HTML-code
+      </button>
+      <button class="knop knop--tweede" id="sigHtmlDownload">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download .html-bestand
+      </button>
+      <p class="hint hint--licht" id="sigCrmHint">De code staat ook onder het voorbeeld</p>
+    </section>
   </aside>
   <section class="podium podium--sig">
     <div class="sigkaart">
@@ -123,6 +137,10 @@
         <div id="sigPreview"><!-- handtekening --></div>
       </div>
     </div>
+    <details class="codewrap">
+      <summary>HTML-code voor Realworks bekijken</summary>
+      <pre id="sigCode"></pre>
+    </details>
   </section>
 </main>
 
@@ -132,6 +150,6 @@
 
 <canvas id="werkCanvas" hidden></canvas>
 <script src="data.js?v=1"></script>
-<script src="studio.js?v=3"></script>
+<script src="studio.js?v=4"></script>
 </body>
 </html>

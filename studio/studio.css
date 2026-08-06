@@ -161,7 +161,16 @@ em{font-family:var(--font-serif);font-style:italic}
 /* ---------- handtekening-tab ---------- */
 .stappen{padding-left:1.2rem;display:flex;flex-direction:column;gap:.5rem;font-size:.92rem;color:var(--ink-soft)}
 .stappen li::marker{color:var(--warm-oranje);font-weight:700}
-.podium--sig{align-items:flex-start;padding-top:4rem}
+.podium--sig{flex-direction:column;align-items:center;justify-content:flex-start;padding-top:4rem;gap:1.2rem;overflow-y:auto}
+.uitleg{font-size:.85rem;color:var(--ink-soft);line-height:1.5;margin-bottom:.85rem}
+.knop--tweede{background:transparent;color:var(--pupil-zwart);box-shadow:inset 0 0 0 2px rgba(29,32,35,.15)}
+.knop--tweede:hover{box-shadow:inset 0 0 0 2px var(--warm-oranje);color:var(--warm-oranje)}
+.knop--tweede + .knop--tweede{margin-top:.55rem}
+.hint--licht{color:var(--ink-soft)}
+.codewrap{width:min(680px,92%);margin-bottom:2rem}
+.codewrap summary{cursor:pointer;font-weight:600;font-size:.9rem;color:var(--ink-soft)}
+.codewrap summary:hover{color:var(--warm-oranje)}
+.codewrap pre{margin-top:.6rem;background:var(--pupil-zwart);color:#e8e3d9;border-radius:14px;padding:1rem 1.2rem;font-size:.72rem;line-height:1.55;overflow:auto;max-height:16rem;white-space:pre-wrap;word-break:break-all}
 .sigkaart{width:min(680px,92%);border-radius:20px;overflow:hidden;box-shadow:var(--schaduw);animation:op .8s var(--ease) .15s both}
 .sigkaart__balk{
   background:var(--pupil-zwart);color:rgba(247,243,235,.7);

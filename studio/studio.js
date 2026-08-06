@@ -423,9 +423,17 @@ function sigHTML(lid) {
   </tr>
 </table>`;
 }
+function huidigLid() {
+  return FOCUS.team.find(t => t.id === $("#sigTeamlid").value) || FOCUS.team[0];
+}
 function renderSig() {
-  const lid = FOCUS.team.find(t => t.id === $("#sigTeamlid").value) || FOCUS.team[0];
-  $("#sigPreview").innerHTML = sigHTML(lid);
+  const html = sigHTML(huidigLid());
+  $("#sigPreview").innerHTML = html;
+  $("#sigCode").textContent = html;
+}
+function flashHint(el, tekst, terug) {
+  el.textContent = tekst;
+  setTimeout(() => { el.textContent = terug; }, 4000);
 }
 async function kopieerSig() {
   const html = $("#sigPreview").innerHTML;
@@ -520,6 +528,21 @@ function init() {
   st.innerHTML = FOCUS.team.map(t => `<option value="${t.id}">${esc(t.naam)} — ${esc(t.vestiging)}</option>`).join("");
   st.addEventListener("change", renderSig);
   $("#sigKopieer").addEventListener("click", kopieerSig);
+  $("#sigHtmlKopieer").addEventListener("click", async () => {
+    await navigator.clipboard.writeText($("#sigCode").textContent);
+    flashHint($("#sigCrmHint"), "HTML-code gekopieerd — plak 'm in Realworks.", "De code staat ook onder het voorbeeld");
+  });
+  $("#sigHtmlDownload").addEventListener("click", () => {
+    const lid = huidigLid();
+    const doc = `<!DOCTYPE html>\n<html lang="nl"><head><meta charset="UTF-8"><title>E-mailhandtekening ${esc(lid.naam)} — Focus Makelaars</title></head><body>\n${$("#sigCode").textContent}\n</body></html>`;
+    const blob = new Blob([doc], { type: "text/html" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `focus-handtekening-${lid.id}.html`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    flashHint($("#sigCrmHint"), "Gedownload!", "De code staat ook onder het voorbeeld");
+  });
   renderSig();
 
   window.addEventListener("resize", schaalPodium);
