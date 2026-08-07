@@ -460,9 +460,33 @@ async function kopieerSig() {
   setTimeout(() => { $("#sigHint").textContent = "Wordt gekopieerd mét opmaak"; }, 4000);
 }
 
-/* ---------- Realworks-koppeling (lokale proxy; token blijft op de PC) ---------- */
-const RW_PROXY = "http://127.0.0.1:8465";
+/* ---------- Realworks-koppeling (lokale proxy óf teamtunnel; token blijft op Robbies PC) ---------- */
+let RW_PROXY = "http://127.0.0.1:8465";
+const RW_SLEUTEL = "fs-x7q9-oog-2026";
 let rwObjecten = [];
+
+function rwFetch(pad, opts) {
+  opts = opts || {};
+  opts.headers = Object.assign({}, opts.headers, { "X-Studio-Sleutel": RW_SLEUTEL });
+  return fetch(RW_PROXY + pad, opts);
+}
+
+async function rwVerbind() {
+  // 1) lokale proxy (Robbies PC), 2) gepubliceerde teamtunnel-URL
+  try {
+    const r = await rwFetch("/gezond", { signal: AbortSignal.timeout(2000) });
+    if (r.ok) return true;
+  } catch {}
+  try {
+    const pub = await (await fetch("api-url.json?cb=" + Date.now())).json();
+    if (pub && pub.url) {
+      RW_PROXY = pub.url.replace(/\/$/, "");
+      const r = await rwFetch("/gezond", { signal: AbortSignal.timeout(6000) });
+      if (r.ok) return true;
+    }
+  } catch {}
+  return false;
+}
 let rwActief = null; // { tekoop:{...}, verkocht:{...}, openhuis:{...}, foto, fotoGloed }
 
 const RW_STATUS_KICKER = {
@@ -472,9 +496,8 @@ const RW_STATUS_KICKER = {
 
 async function rwInit() {
   try {
-    const g = await fetch(RW_PROXY + "/gezond", { signal: AbortSignal.timeout(1500) });
-    if (!g.ok) return;
-    rwObjecten = (await (await fetch(RW_PROXY + "/objecten")).json()).objecten || [];
+    if (!await rwVerbind()) return;
+    rwObjecten = (await (await rwFetch("/objecten")).json()).objecten || [];
     if (!rwObjecten.length) return;
     const sel = $("#rwSelect");
     rwObjecten.forEach((o, i) => {
@@ -518,7 +541,7 @@ async function rwKies(o) {
   $("#rwHint").textContent = "Woning laden…";
   if (o.hoofdfoto) {
     try {
-      const blob = await (await fetch(RW_PROXY + "/foto?url=" + encodeURIComponent(o.hoofdfoto))).blob();
+      const blob = await (await rwFetch("/foto?url=" + encodeURIComponent(o.hoofdfoto))).blob();
       rwActief.foto = await naarDataURL(blob);
     } catch { /* foto niet beschikbaar */ }
   }
@@ -589,7 +612,8 @@ function brKenmerken(obj) {
 }
 
 async function brDataURL(url) {
-  const blob = await (await fetch(url)).blob();
+  // paden die met / beginnen lopen via de Realworks-proxy (met sleutel)
+  const blob = await (await (url.startsWith("/") ? rwFetch(url) : fetch(url))).blob();
   return naarDataURL(blob);
 }
 
@@ -902,7 +926,7 @@ async function edKies(compactObj) {
   $("#edLaden").classList.remove("is-verborgen");
   laad(`${compactObj.straat} ${compactObj.huisnummer} laden…`);
   try {
-    const obj = await (await fetch(`${RW_PROXY}/object/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
+    const obj = await (await rwFetch(`/object/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
     const mediaRuw = (obj.media || []).filter(m => ["HOOFDFOTO", "FOTO", "PLATTEGROND"].includes(m.soort) && m.vrijgave)
       .sort((a, b) => (a.soort !== "HOOFDFOTO") - (b.soort !== "HOOFDFOTO") || (a.volgnummer || 99) - (b.volgnummer || 99));
     ed = { compact: compactObj, obj, media: [], paginas: [], actief: 0 };
@@ -913,7 +937,7 @@ async function edKies(compactObj) {
     for (let i = 0; i < mediaRuw.length; i++) {
       laad(`Foto's laden… (${i + 1}/${mediaRuw.length})`);
       try {
-        mediaRuw[i].dataurl = await brDataURL(`${RW_PROXY}/foto?url=${encodeURIComponent(mediaRuw[i].link)}`);
+        mediaRuw[i].dataurl = await brDataURL(`/foto?url=${encodeURIComponent(mediaRuw[i].link)}`);
         ed.media.push(mediaRuw[i]);
       } catch { /* foto overslaan */ }
     }
@@ -921,7 +945,7 @@ async function edKies(compactObj) {
     ed.lvz = []; ed.lvzOverrides = {};
     try {
       laad("Lijst van zaken ophalen…");
-      const lvzData = await (await fetch(`${RW_PROXY}/lijstvanzaken/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
+      const lvzData = await (await rwFetch(`/lijstvanzaken/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
       ed.lvz = edLvzRijen(lvzData);
     } catch { /* geen lijst beschikbaar */ }
     // locatiekaart ophalen (OpenStreetMap via proxy)
@@ -929,7 +953,7 @@ async function edKies(compactObj) {
       laad("Locatiekaart maken…");
       const adr = obj.adres || {}, h = adr.huisnummer || {};
       const zoek = `${adr.straat || ""} ${h.hoofdnummer || ""}, ${adr.postcode || ""} ${adr.plaats || ""}`;
-      ed.kaart = await brDataURL(`${RW_PROXY}/kaart?q=${encodeURIComponent(zoek)}`);
+      ed.kaart = await brDataURL(`/kaart?q=${encodeURIComponent(zoek)}`);
     } catch { ed.kaart = null; }
     // eerder werk terugzetten of standaardopzet maken
     let bewaard = null;
@@ -1153,7 +1177,7 @@ async function omZet(o) {
   om = { o, foto: null, teksten: om.o && om.o.objectcode === o.objectcode ? om.teksten : {} };
   $("#omStatus").textContent = `${o.straat} ${o.huisnummer}, ${o.plaats}`;
   if (o.hoofdfoto) {
-    try { om.foto = await brDataURL(`${RW_PROXY}/foto?url=${encodeURIComponent(o.hoofdfoto)}`); } catch {}
+    try { om.foto = await brDataURL(`/foto?url=${encodeURIComponent(o.hoofdfoto)}`); } catch {}
   }
   om.logo = om.logo || await laadLogo();
   om.qr = om.qr || await brDataURL("qr-waardecheck.png");
