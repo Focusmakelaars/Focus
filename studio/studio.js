@@ -1161,7 +1161,8 @@ function omHTML() {
   const adres = `${o.straat} ${o.huisnummer}`;
   const vestNaam = $("#omVestiging").value;
   const vest = FOCUS.vestigingen[vestNaam];
-  const prijs = o.koopprijs ? `€ ${Math.round(o.koopprijs).toLocaleString("nl-NL")} ${o.koopconditie === "VRIJ_OP_NAAM" ? "v.o.n." : "k.k."}` : "";
+  const prijs = (soort !== "verkocht" && o.koopprijs)
+    ? `€ ${Math.round(o.koopprijs).toLocaleString("nl-NL")} ${o.koopconditie === "VRIJ_OP_NAAM" ? "v.o.n." : "k.k."}` : "";
   const fotoInhoud = om.foto ? `<img src="${om.foto}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`
     : '<div style="position:absolute;inset:0;background:#DFD1BB"></div>';
   return `
@@ -1191,16 +1192,20 @@ function omRender() {
   $("#omCanvas").innerHTML = omHTML();
 }
 
+async function omPrintDoc() {
+  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=3")).text()]);
+  return `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Omwonende-mailing</title>
+    <style>${fonts}\n${css}\n@page{size:148mm 210mm;margin:0}html,body{margin:0;padding:0}[contenteditable]{outline:none}</style>
+    </head><body>${omHTML().replace(/ contenteditable="true"/g, "")}</body></html>`;
+}
+window.omPrintDoc = omPrintDoc; // voor geautomatiseerd renderen (drukbestanden)
+
 async function omPrint() {
   if (!om.o) return;
-  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=3")).text()]);
-  const doc = `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Omwonende-mailing</title>
-    <style>${fonts}\n${css}\n@page{size:148mm 210mm;margin:0}html,body{margin:0;padding:0}[contenteditable]{outline:none}</style>
-    </head><body>${omHTML()}</body></html>`;
+  const doc = await omPrintDoc();
   const w = window.open("", "_blank");
   w.document.write(doc);
   w.document.close();
-  w.document.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
   setTimeout(() => w.print(), 1000);
 }
 
