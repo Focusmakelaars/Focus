@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
 <link rel="stylesheet" href="poster.css?v=5">
-<link rel="stylesheet" href="studio.css?v=7">
+<link rel="stylesheet" href="studio.css?v=8">
 <link rel="stylesheet" href="brochure-paginas.css?v=3">
 </head>
 <body>
@@ -37,7 +37,10 @@
     <span class="kicker-hub">Start hier</span>
     <h1>Over welke <em>woning</em> gaat het?</h1>
     <p class="hub__sub">Kies een pand uit Realworks — daarna maak je er in één klik socials, een brochure of een omwonende-mailing van. Of ga direct naar de algemene studio-onderdelen.</p>
-    <select id="wnSelect" class="select hub__select" disabled><option value="" selected disabled>Woningen laden…</option></select>
+    <div class="hub__zoek">
+      <input type="search" id="wnZoek" class="select hub__select" placeholder="Typ straat of plaats…" autocomplete="off" disabled>
+      <div class="hub__resultaten is-verborgen" id="wnResultaten"></div>
+    </div>
     <p class="hint hint--licht" id="wnStatus">Verbinden met Realworks…</p>
 
     <div class="hub__kaarten" id="wnActies">
@@ -301,6 +304,6 @@
 
 <canvas id="werkCanvas" hidden></canvas>
 <script src="data.js?v=1"></script>
-<script src="studio.js?v=15"></script>
+<script src="studio.js?v=16"></script>
 </body>
 </html>

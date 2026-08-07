@@ -1221,20 +1221,49 @@ function wnKies(i) {
 }
 
 function wnInit() {
-  const sel = $("#wnSelect");
+  const zoek = $("#wnZoek");
+  const lijst = $("#wnResultaten");
+
+  const gesorteerd = () => rwObjecten
+    .map((o, i) => ({ o, i }))
+    .sort((a, b) => String(b.o.invoerdatum || b.o.gewijzigd || "").localeCompare(String(a.o.invoerdatum || a.o.gewijzigd || "")));
+
+  const toonResultaten = () => {
+    const q = zoek.value.trim().toLowerCase();
+    const treffers = gesorteerd().filter(({ o }) =>
+      !q || `${o.straat} ${o.huisnummer} ${o.plaats} ${o.postcode || ""}`.toLowerCase().includes(q)
+    ).slice(0, 12);
+    lijst.innerHTML = treffers.length
+      ? treffers.map(({ o, i }) =>
+          `<div class="hub__rij" data-i="${i}"><div>${esc(o.straat)} ${esc(o.huisnummer)}<small>${esc(o.plaats)}</small></div>` +
+          `<span class="status">${BR_STATUS[o.status] || brNet(o.status) || ""}</span></div>`).join("")
+      : '<div class="hub__geen">Geen woningen gevonden — probeer een ander zoekwoord.</div>';
+    lijst.classList.remove("is-verborgen");
+  };
+
   const vul = () => {
     if (!rwObjecten.length) {
       $("#wnStatus").innerHTML = "Geen verbinding met Realworks — start de proxy op deze PC en herlaad de pagina.<br>De algemene onderdelen hieronder werken gewoon.";
-      sel.innerHTML = '<option value="" selected disabled>Niet beschikbaar</option>';
       return;
     }
-    sel.disabled = false;
-    sel.innerHTML = '<option value="" selected disabled>Kies een woning…</option>' +
-      rwObjecten.map((o, i) => `<option value="${i}">${esc(o.straat)} ${esc(o.huisnummer)}, ${esc(o.plaats)}</option>`).join("");
-    $("#wnStatus").textContent = `${rwObjecten.length} woning(en) uit Realworks`;
+    zoek.disabled = false;
+    $("#wnStatus").textContent = `${rwObjecten.length} woning(en) uit Realworks — typ om te zoeken`;
   };
   setTimeout(vul, 2500);
-  sel.addEventListener("change", () => wnKies(+sel.value));
+
+  zoek.addEventListener("input", toonResultaten);
+  zoek.addEventListener("focus", toonResultaten);
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".hub__zoek")) lijst.classList.add("is-verborgen");
+  });
+  lijst.addEventListener("click", e => {
+    const rij = e.target.closest(".hub__rij");
+    if (!rij) return;
+    const i = +rij.dataset.i;
+    zoek.value = `${rwObjecten[i].straat} ${rwObjecten[i].huisnummer}, ${rwObjecten[i].plaats}`;
+    lijst.classList.add("is-verborgen");
+    wnKies(i);
+  });
 
   $("#wnActies").addEventListener("click", e => {
     const b = e.target.closest(".hub__kaart");
