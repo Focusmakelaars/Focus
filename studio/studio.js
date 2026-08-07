@@ -894,7 +894,13 @@ function edSluitFotoKiezer() { $("#edFotoModal").classList.add("is-verborgen"); 
 
 async function edKies(compactObj) {
   const st = $("#brStatus");
-  st.textContent = "Woning laden…";
+  const laad = t => { st.textContent = t; $("#edLadenTekst").textContent = t; };
+  $("#edLeeg").classList.add("is-verborgen");
+  $("#edCanvas").classList.add("is-verborgen");
+  $("#edStrip").classList.add("is-verborgen");
+  $("#edToolbar").classList.add("is-verborgen");
+  $("#edLaden").classList.remove("is-verborgen");
+  laad(`${compactObj.straat} ${compactObj.huisnummer} laden…`);
   try {
     const obj = await (await fetch(`${RW_PROXY}/object/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
     const mediaRuw = (obj.media || []).filter(m => ["HOOFDFOTO", "FOTO", "PLATTEGROND"].includes(m.soort) && m.vrijgave)
@@ -905,7 +911,7 @@ async function edKies(compactObj) {
     ed.qr = await brDataURL("qr-waardecheck.png");
     ed.brandfotos = [await brDataURL("../assets/img/stel-tuin.png"), await brDataURL("../assets/img/makelaar-gesprek.png")];
     for (let i = 0; i < mediaRuw.length; i++) {
-      st.textContent = `Foto's laden… (${i + 1}/${mediaRuw.length})`;
+      laad(`Foto's laden… (${i + 1}/${mediaRuw.length})`);
       try {
         mediaRuw[i].dataurl = await brDataURL(`${RW_PROXY}/foto?url=${encodeURIComponent(mediaRuw[i].link)}`);
         ed.media.push(mediaRuw[i]);
@@ -914,13 +920,13 @@ async function edKies(compactObj) {
     // lijst van zaken ophalen
     ed.lvz = []; ed.lvzOverrides = {};
     try {
-      st.textContent = "Lijst van zaken ophalen…";
+      laad("Lijst van zaken ophalen…");
       const lvzData = await (await fetch(`${RW_PROXY}/lijstvanzaken/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
       ed.lvz = edLvzRijen(lvzData);
     } catch { /* geen lijst beschikbaar */ }
     // locatiekaart ophalen (OpenStreetMap via proxy)
     try {
-      st.textContent = "Locatiekaart maken…";
+      laad("Locatiekaart maken…");
       const adr = obj.adres || {}, h = adr.huisnummer || {};
       const zoek = `${adr.straat || ""} ${h.hoofdnummer || ""}, ${adr.postcode || ""} ${adr.plaats || ""}`;
       ed.kaart = await brDataURL(`${RW_PROXY}/kaart?q=${encodeURIComponent(zoek)}`);
@@ -946,7 +952,7 @@ async function edKies(compactObj) {
       .join("") || '<p class="hint hint--licht">Geen teksten bij deze woning.</p>';
     $("#edTekstenVeld").classList.remove("is-verborgen");
 
-    $("#edLeeg").classList.add("is-verborgen");
+    $("#edLaden").classList.add("is-verborgen");
     $("#edCanvas").classList.remove("is-verborgen");
     $("#edStrip").classList.remove("is-verborgen");
     $("#edToolbar").classList.remove("is-verborgen");
@@ -954,6 +960,8 @@ async function edKies(compactObj) {
     ed.actief = 0;
     edRender();
   } catch (e) {
+    $("#edLaden").classList.add("is-verborgen");
+    $("#edLeeg").classList.remove("is-verborgen");
     st.textContent = "Laden mislukte: " + e.message;
   }
 }
@@ -1299,6 +1307,7 @@ function wnInit() {
 /* ---------- events ---------- */
 function init() {
   $("#topBeeldmerk").innerHTML = beeldmerkSVG();
+  $("#edLadenOog").innerHTML = beeldmerkSVG();
 
   // vestigingen
   const vs = $("#vestigingSelect");

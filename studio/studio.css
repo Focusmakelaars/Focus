@@ -186,6 +186,10 @@ em{font-family:var(--font-serif);font-style:italic}
 .tegelgroep{font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--iris-bruin);margin:.85rem 0 .45rem}
 .tegelgroep:first-child{margin-top:0}
 .ed-schaal--a5{height:1200px}
+.ed-laden{margin:auto;text-align:center}
+.ed-laden svg{width:74px;height:74px;color:var(--warm-oranje);animation:oogdraai 1.6s linear infinite}
+.ed-laden p{margin-top:1rem;font-weight:600;color:var(--ink-soft)}
+@keyframes oogdraai{to{transform:rotate(360deg)}}
 
 /* ---------- brochure-editor ---------- */
 .br-leeg{margin:auto;max-width:26em;text-align:center;color:var(--ink-soft);background:var(--wit);border-radius:20px;padding:2.2rem 2.4rem;box-shadow:0 24px 60px -30px rgba(29,32,35,.18);line-height:1.6}
@@ -211,7 +215,8 @@ em{font-family:var(--font-serif);font-style:italic}
 .ed-aantal.is-waarschuwing{color:#a03510}
 .ed-canvas{flex:1;overflow:auto;display:flex;padding:1.8rem}
 .ed-schaal{margin:0 auto;transform:scale(.66);transform-origin:top center;height:750px;flex:none}
-.ed-schaal .bp{box-shadow:0 30px 70px -30px rgba(29,32,35,.4);border-radius:4px}
+.ed-schaal .bp,.ed-schaal .mp{box-shadow:0 26px 60px -26px rgba(29,32,35,.45),0 0 0 1px rgba(176,131,107,.18);border-radius:4px}
+.ed-schaal .mp{margin-bottom:2.2rem}
 .ed-schaal .bslot{cursor:pointer}
 .ed-schaal .bslot:hover{outline:4px solid var(--focus-oranje);outline-offset:-4px}
 .ed-schaal [contenteditable]{cursor:text;border-radius:2mm}
