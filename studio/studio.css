@@ -158,6 +158,18 @@ em{font-family:var(--font-serif);font-style:italic}
 .podium__schaal{transform-origin:center;filter:drop-shadow(0 30px 60px rgba(29,32,35,.28));animation:fadein .8s var(--ease) .2s both}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
 
+/* ---------- toegangspoort ---------- */
+.poort{position:fixed;inset:0;z-index:100;background:var(--helder-beige);display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.poort.is-verborgen{display:none}
+.poort__kaart{background:var(--wit);border-radius:24px;box-shadow:0 30px 70px -30px rgba(29,32,35,.3);padding:2.6rem 2.8rem;max-width:400px;width:100%;text-align:center}
+.poort__oog svg{width:64px;height:64px;color:var(--warm-oranje)}
+.poort__kaart h1{font-size:1.6rem;font-weight:700;margin-top:1rem}
+.poort__kaart h1 em{font-family:var(--font-serif,"STIX Two Text",serif);font-style:italic;font-weight:500;color:var(--warm-oranje)}
+.poort__kaart p{color:var(--ink-soft);font-size:.9rem;margin-top:.4rem}
+.poort__kaart form{display:flex;flex-direction:column;gap:.8rem;margin-top:1.5rem}
+.poort__kaart .knop{justify-content:center}
+.poort__fout{color:#a03510!important;font-weight:600;margin-top:.9rem!important}
+
 /* ---------- woning-hub ---------- */
 .studio--hub{display:flex;align-items:flex-start;justify-content:center;overflow:auto}
 .hub{max-width:640px;width:100%;padding:3.2rem 1.5rem 4rem;text-align:center}
@@ -234,10 +246,10 @@ em{font-family:var(--font-serif);font-style:italic}
 .ed-modal__kop strong{font-size:1.05rem}
 .ed-modal__kop button{font-size:1.6rem;line-height:1;color:var(--ink-soft)}
 .ed-modal__kop button:hover{color:var(--warm-oranje)}
-.ed-modal__grid{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.7rem;margin-top:1rem;min-height:8rem}
-.ed-modal__grid button{position:relative;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:var(--helder-beige);box-shadow:inset 0 0 0 2px transparent;transition:all .2s}
+.ed-modal__grid{overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-rows:112px;gap:.7rem;margin-top:1rem;min-height:8rem}
+.ed-modal__grid button{position:relative;height:112px;border-radius:12px;overflow:hidden;background:var(--helder-beige);box-shadow:inset 0 0 0 2px transparent;transition:box-shadow .2s}
 .ed-modal__grid button:hover{box-shadow:inset 0 0 0 3px var(--warm-oranje)}
-.ed-modal__grid img{width:100%;height:100%;object-fit:cover;display:block}
+.ed-modal__grid img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .ed-modal__grid .tag{position:absolute;bottom:6px;left:6px;background:var(--pupil-zwart);color:var(--wit);font-size:.62rem;font-weight:600;padding:2px 7px;border-radius:99px}
 .ed-modal__voet{display:flex;gap:.7rem;margin-top:1rem;flex-wrap:wrap}
 .ed-modal__voet .knop{cursor:pointer}

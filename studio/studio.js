@@ -1304,8 +1304,40 @@ function wnInit() {
   $("#omPrint").addEventListener("click", omPrint);
 }
 
+/* ---------- toegangspoort ---------- */
+const POORT_HASH = "9e1e944f59a6640b1954eb32962cbcaf9003933611438146a5944c3decf6ff98";
+
+async function sha256hex(tekst) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(tekst));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function poortInit() {
+  const poort = $("#poort");
+  $("#poortOog").innerHTML = beeldmerkSVG();
+  try {
+    if (localStorage.getItem("fs-toegang") === POORT_HASH) {
+      poort.classList.add("is-verborgen");
+      return;
+    }
+  } catch {}
+  $("#poortForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const hash = await sha256hex($("#poortWachtwoord").value.trim().toLowerCase());
+    if (hash === POORT_HASH) {
+      try { localStorage.setItem("fs-toegang", hash); } catch {}
+      poort.classList.add("is-verborgen");
+      schaalPodium();
+    } else {
+      $("#poortFout").classList.remove("is-verborgen");
+      $("#poortWachtwoord").select();
+    }
+  });
+}
+
 /* ---------- events ---------- */
 function init() {
+  poortInit();
   $("#topBeeldmerk").innerHTML = beeldmerkSVG();
   $("#edLadenOog").innerHTML = beeldmerkSVG();
 

@@ -8,10 +8,24 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
 <link rel="stylesheet" href="poster.css?v=5">
-<link rel="stylesheet" href="studio.css?v=9">
+<link rel="stylesheet" href="studio.css?v=10">
 <link rel="stylesheet" href="brochure-paginas.css?v=3">
 </head>
 <body>
+
+<!-- toegangspoort -->
+<div class="poort" id="poort">
+  <div class="poort__kaart">
+    <span class="poort__oog" id="poortOog"></span>
+    <h1>Focus <em>Studio</em></h1>
+    <p>Alleen voor het team van Focus Makelaars.</p>
+    <form id="poortForm">
+      <input type="password" id="poortWachtwoord" class="select" placeholder="Wachtwoord" autocomplete="current-password" autofocus>
+      <button class="knop knop--primair" type="submit">Open de studio</button>
+    </form>
+    <p class="poort__fout is-verborgen" id="poortFout">Dat wachtwoord klopt niet — probeer het nog eens.</p>
+  </div>
+</div>
 
 <header class="topbar">
   <div class="topbar__brand">
@@ -308,6 +322,6 @@
 
 <canvas id="werkCanvas" hidden></canvas>
 <script src="data.js?v=1"></script>
-<script src="studio.js?v=17"></script>
+<script src="studio.js?v=18"></script>
 </body>
 </html>
