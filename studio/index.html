@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
 <link rel="stylesheet" href="poster.css?v=5">
-<link rel="stylesheet" href="studio.css?v=5">
+<link rel="stylesheet" href="studio.css?v=6">
 <link rel="stylesheet" href="brochure-paginas.css?v=2">
 </head>
 <body>
@@ -132,7 +132,9 @@
       <div class="ed-toolbar is-verborgen" id="edToolbar">
         <label>Pagina-layout</label>
         <select id="edLayout" class="select select--klein"></select>
+        <button class="ed-knopje ed-knopje--breed" id="edToevoeg" title="Nieuwe pagina na deze pagina">+ Pagina</button>
         <span class="ed-toolbar__rek"></span>
+        <span class="ed-aantal" id="edAantal"></span>
         <button class="ed-knopje" id="edOmhoog" title="Pagina naar voren">&larr;</button>
         <button class="ed-knopje" id="edOmlaag" title="Pagina naar achteren">&rarr;</button>
         <button class="ed-knopje ed-knopje--rood" id="edVerwijder" title="Pagina verwijderen">&times;</button>
@@ -222,6 +224,6 @@
 
 <canvas id="werkCanvas" hidden></canvas>
 <script src="data.js?v=1"></script>
-<script src="studio.js?v=12"></script>
+<script src="studio.js?v=13"></script>
 </body>
 </html>

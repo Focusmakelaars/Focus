@@ -819,31 +819,37 @@ function edPaginaHTML(p, nr) {
 }
 
 function edStandaardPaginas(obj) {
+  /* Vaste opzet (wens Robbie): p1 cover · p2-8 inhoud · p9 kenmerken ·
+     p10-13 plattegronden · p14(+) lijst van zaken · p15 Over Focus · p16 achterkant. */
   const teksten = obj.teksten || {};
   const tekst = teksten.a4Tekst || teksten.aanbiedingstekst || "";
   const media = ed.media;
   const foto = i => (media[i] ? { bron: "media", i } : undefined);
-  const plattegrondIdx = media.findIndex(m => m.soort === "PLATTEGROND");
   const paginas = [
-    { layout: "cover", fotos: { f1: foto(0) }, teksten: {} },
-    { layout: "fototekst", fotos: { f1: foto(1), f2: foto(2) }, teksten: { kop: "Welkom binnen.", lopend: tekst } },
-    { layout: "raster", fotos: { f1: foto(3), f2: foto(4), f3: foto(5), f4: foto(6) }, teksten: {} },
-    { layout: "tekst3", fotos: { f1: foto(7), f2: foto(8), f3: foto(9) }, teksten: { kop: "", lopend: "" } },
-    { layout: "bijzonder", fotos: { f1: foto(10) }, teksten: { lijst: "" } },
-    { layout: "kenmerken", fotos: {}, teksten: {} }
+    { layout: "cover", fotos: { f1: foto(0) }, teksten: {} },                                              // 1
+    { layout: "fototekst", fotos: { f1: foto(1), f2: foto(2) }, teksten: { kop: "Welkom binnen.", lopend: tekst } }, // 2
+    { layout: "raster", fotos: { f1: foto(3), f2: foto(4), f3: foto(5), f4: foto(6) }, teksten: {} },      // 3
+    { layout: "fototekst", fotos: { f1: foto(7), f2: foto(8) }, teksten: { kop: "", lopend: "" } },        // 4
+    { layout: "vol", fotos: { f1: foto(9) }, teksten: {} },                                                // 5
+    { layout: "tekst3", fotos: { f1: foto(10), f2: foto(11), f3: foto(12) }, teksten: { kop: "", lopend: "" } }, // 6
+    { layout: "raster", fotos: { f1: foto(13), f2: foto(14), f3: foto(15), f4: foto(16) }, teksten: {} },  // 7
+    { layout: "bijzonder", fotos: { f1: foto(17) }, teksten: { lijst: "" } },                              // 8
+    { layout: "kenmerken", fotos: {}, teksten: {} }                                                        // 9
   ];
-  // lijst van zaken: zoveel pagina's als nodig
-  const lvzPaginas = Math.ceil((ed.lvz || []).length / LVZ_PER_PAGINA);
+  // p10-13: altijd 4 plattegrond-pagina's — eerst de echte plattegronden uit Realworks, rest leeg
+  const plats = media.map((m, i) => ({ m, i })).filter(x => x.m.soort === "PLATTEGROND");
+  for (let k = 0; k < 4; k++)
+    paginas.push({ layout: "plattegrond",
+      fotos: plats[k] ? { f1: { bron: "media", i: plats[k].i } } : {},
+      teksten: { kop: "Plattegrond" } });
+  // extra plattegronden (5e) ook meenemen
+  for (let k = 4; k < plats.length; k++)
+    paginas.push({ layout: "plattegrond", fotos: { f1: { bron: "media", i: plats[k].i } }, teksten: { kop: "Plattegrond" } });
+  // p14(+): lijst van zaken — zoveel pagina's als de lijst nodig heeft
+  const lvzPaginas = Math.max(1, Math.ceil((ed.lvz || []).length / LVZ_PER_PAGINA));
   for (let i = 0; i < lvzPaginas; i++) paginas.push({ layout: "lijstvanzaken", fotos: {}, teksten: {} });
-  // kaartenpagina (kadastrale kaart uploaden; locatiekaart komt automatisch)
-  paginas.push({ layout: "kaarten", fotos: {}, teksten: {} });
-  // één plattegrond-pagina per plattegrond in Realworks (soms 1, soms 5)
-  media.forEach((m, i) => {
-    if (m.soort === "PLATTEGROND")
-      paginas.push({ layout: "plattegrond", fotos: { f1: { bron: "media", i } }, teksten: { kop: "Plattegrond" } });
-  });
-  paginas.push({ layout: "overfocus", fotos: {}, teksten: {} });
-  paginas.push({ layout: "contact", fotos: {}, teksten: {} });
+  paginas.push({ layout: "overfocus", fotos: {}, teksten: {} });  // 15
+  paginas.push({ layout: "contact", fotos: {}, teksten: {} });    // 16 achterkant
   return paginas;
 }
 
@@ -866,6 +872,12 @@ function edRenderCanvas() {
 function edRender() {
   edRenderCanvas();
   edRenderStrip();
+  const n = ed.paginas.length;
+  const teller = $("#edAantal");
+  teller.textContent = n % 4 === 0
+    ? `${n} pagina's · drukklaar (4-voud)`
+    : `${n} pagina's · nog geen 4-voud (voor drukwerk)`;
+  teller.classList.toggle("is-waarschuwing", n % 4 !== 0);
   edBewaar();
 }
 
@@ -1004,6 +1016,12 @@ function brInit() {
   $("#edVerwijder").addEventListener("click", () => {
     if (!ed || ed.paginas.length <= 1) return;
     ed.paginas.splice(ed.actief, 1);
+    ed.actief = Math.min(ed.actief, ed.paginas.length - 1);
+    edRender();
+  });
+  $("#edToevoeg").addEventListener("click", () => {
+    if (!ed) return;
+    ed.paginas.splice(++ed.actief, 0, { layout: "fototekst", fotos: {}, teksten: {} });
     ed.actief = Math.min(ed.actief, ed.paginas.length - 1);
     edRender();
   });

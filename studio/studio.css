@@ -178,6 +178,8 @@ em{font-family:var(--font-serif);font-style:italic}
 .ed-knopje:hover{background:var(--comfort-beige)}
 .ed-knopje--rood:hover{background:#f3c1ad;color:#a03510}
 .ed-knopje--breed{width:auto;padding:0 .9rem;font-size:.78rem;font-weight:600}
+.ed-aantal{font-size:.75rem;font-weight:600;color:var(--ink-soft);margin-right:.5rem}
+.ed-aantal.is-waarschuwing{color:#a03510}
 .ed-canvas{flex:1;overflow:auto;display:flex;padding:1.8rem}
 .ed-schaal{margin:0 auto;transform:scale(.66);transform-origin:top center;height:750px;flex:none}
 .ed-schaal .bp{box-shadow:0 30px 70px -30px rgba(29,32,35,.4);border-radius:4px}
