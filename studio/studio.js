@@ -460,6 +460,77 @@ async function kopieerSig() {
   setTimeout(() => { $("#sigHint").textContent = "Wordt gekopieerd mét opmaak"; }, 4000);
 }
 
+/* ---------- Realworks-koppeling (lokale proxy; token blijft op de PC) ---------- */
+const RW_PROXY = "http://127.0.0.1:8465";
+let rwObjecten = [];
+let rwActief = null; // { tekoop:{...}, verkocht:{...}, openhuis:{...}, foto, fotoGloed }
+
+const RW_STATUS_KICKER = {
+  BESCHIKBAAR: "Te koop", IN_AANMELDING: "Binnenkort te koop",
+  IN_VOORBEREIDING: "Binnenkort te koop", ONDER_BOD: "Te koop"
+};
+
+async function rwInit() {
+  try {
+    const g = await fetch(RW_PROXY + "/gezond", { signal: AbortSignal.timeout(1500) });
+    if (!g.ok) return;
+    rwObjecten = (await (await fetch(RW_PROXY + "/objecten")).json()).objecten || [];
+    if (!rwObjecten.length) return;
+    const sel = $("#rwSelect");
+    rwObjecten.forEach((o, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = `${o.straat} ${o.huisnummer}, ${o.plaats}`;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener("change", () => rwKies(rwObjecten[+sel.value]));
+    $("#rwVeld").classList.remove("is-verborgen");
+  } catch { /* proxy draait niet — sectie blijft verborgen */ }
+}
+
+function rwToepassen() {
+  if (!rwActief) return;
+  Object.assign(state.velden, rwActief[state.template] || {});
+  if (rwActief.foto && SJABLONEN[state.template].foto) {
+    state.fotoOrigineel = rwActief.foto;
+    state.fotoGloed = rwActief.fotoGloed;
+    state.fotoIsUpload = true;
+    const drop = $("#dropzone");
+    drop.classList.add("heeft-foto");
+    drop.style.backgroundImage = `url(${rwActief.foto})`;
+    $("#dropTekst").textContent = "Andere foto kiezen";
+  }
+}
+
+async function rwKies(o) {
+  if (!o) return;
+  const adres = `${o.straat} ${o.huisnummer}`;
+  const prijs = o.koopprijs
+    ? `€ ${Math.round(o.koopprijs).toLocaleString("nl-NL")} ${o.koopconditie === "VRIJ_OP_NAAM" ? "v.o.n." : "k.k."}`
+    : (o.huurprijs ? `€ ${Math.round(o.huurprijs).toLocaleString("nl-NL")} p.m.` : "");
+  rwActief = {
+    tekoop: Object.assign({ straat: adres, plaats: o.plaats, prijs },
+                          RW_STATUS_KICKER[o.status] ? { kicker: RW_STATUS_KICKER[o.status] } : {}),
+    verkocht: { adres: `${adres} · ${o.plaats}` },
+    openhuis: { waar: `${adres}, ${o.plaats}` },
+    foto: null, fotoGloed: null
+  };
+  $("#rwHint").textContent = "Woning laden…";
+  if (o.hoofdfoto) {
+    try {
+      const blob = await (await fetch(RW_PROXY + "/foto?url=" + encodeURIComponent(o.hoofdfoto))).blob();
+      rwActief.foto = await naarDataURL(blob);
+    } catch { /* foto niet beschikbaar */ }
+  }
+  rwToepassen();
+  bouwInputs(); render();
+  $("#rwHint").textContent = "Adres, prijs en foto zijn ingevuld";
+  if (rwActief.foto) {
+    rwActief.fotoGloed = await warmeGloed(rwActief.foto);
+    if (state.fotoOrigineel === rwActief.foto) { state.fotoGloed = rwActief.fotoGloed; render(); }
+  }
+}
+
 /* ---------- events ---------- */
 function init() {
   $("#topBeeldmerk").innerHTML = beeldmerkSVG();
@@ -476,6 +547,7 @@ function init() {
     state.template = b.dataset.t;
     state.velden = {};
     state.fotoIsUpload = false;
+    rwToepassen();
     bouwInputs(); render();
   });
 
@@ -555,6 +627,7 @@ function init() {
 
   bouwInputs();
   render();
+  rwInit();
 }
 
 document.addEventListener("DOMContentLoaded", init);
