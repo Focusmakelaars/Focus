@@ -177,6 +177,7 @@ em{font-family:var(--font-serif);font-style:italic}
 .ed-knopje{width:2.2rem;height:2.2rem;border-radius:10px;background:var(--helder-beige);font-size:1.05rem;font-weight:700;color:var(--pupil-zwart);transition:all .2s}
 .ed-knopje:hover{background:var(--comfort-beige)}
 .ed-knopje--rood:hover{background:#f3c1ad;color:#a03510}
+.ed-knopje--breed{width:auto;padding:0 .9rem;font-size:.78rem;font-weight:600}
 .ed-canvas{flex:1;overflow:auto;display:flex;padding:1.8rem}
 .ed-schaal{margin:0 auto;transform:scale(.66);transform-origin:top center;height:750px;flex:none}
 .ed-schaal .bp{box-shadow:0 30px 70px -30px rgba(29,32,35,.4);border-radius:4px}

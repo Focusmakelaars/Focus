@@ -1007,6 +1007,16 @@ function brInit() {
     ed.actief = Math.min(ed.actief, ed.paginas.length - 1);
     edRender();
   });
+  $("#edReset").addEventListener("click", () => {
+    if (!ed) return;
+    if (!confirm("Bewaard werk aan deze brochure wissen en opnieuw beginnen met de standaardopzet?")) return;
+    try { localStorage.removeItem(edOpslagKey()); } catch {}
+    ed.lvzOverrides = {};
+    ed.paginas = edStandaardPaginas(ed.obj);
+    ed.actief = 0;
+    edRender();
+    $("#brStatus").textContent = "Verse start — standaardopzet opnieuw opgebouwd";
+  });
 
   // paginastrip: selecteren + toevoegen
   $("#edStrip").addEventListener("click", e => {
