@@ -53,19 +53,19 @@ function laadImg(src) {
   return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
 }
 
-const STANDAARD_FOTO = {
-  tekoop:   null,  // geen voorbeeldfoto: placeholder maakt duidelijk dat hier de upload komt
-  verkocht: "../assets/img/stel-sleutels.png",
-  openhuis: "../assets/img/stel-tuin.png"
-};
+// geen voorbeeldfoto's: de placeholder maakt duidelijk dat hier de upload komt
+const STANDAARD_FOTO = { tekoop: null, verkocht: null, openhuis: null };
 
-function fotoBlok(extraClass) {
-  if (fotoSrc()) return `<div class="p-photo ${extraClass}"><img src="${fotoSrc()}" alt=""></div>`;
-  return `<div class="p-photo ${extraClass}"><div class="p-placeholder">
+function placeholderInhoud(donker) {
+  return `<div class="p-placeholder${donker ? " p-placeholder--donker" : ""}">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
     <strong>Hier komt jouw woningfoto</strong>
     <span class="serif">upload of sleep &#8217;m in het linkerpaneel</span>
-  </div></div>`;
+  </div>`;
+}
+function fotoBlok(extraClass) {
+  if (fotoSrc()) return `<div class="p-photo ${extraClass}"><img src="${fotoSrc()}" alt=""></div>`;
+  return `<div class="p-photo ${extraClass}">${placeholderInhoud(false)}</div>`;
 }
 
 /* ---------- warme gloed (fotorecept uit het brandbook) ---------- */
@@ -195,7 +195,10 @@ const RENDER = {
     </div>`;
   },
   verkocht(v, tel) {
-    return `<div class="p-fullphoto"><img src="${fotoSrc()}" alt=""></div><div class="p-scrim"></div>
+    const foto = fotoSrc();
+    return `${foto
+      ? `<div class="p-fullphoto"><img src="${foto}" alt=""></div><div class="p-scrim"></div>`
+      : `<div class="p-fullphoto">${placeholderInhoud(true)}</div>`}
     <div class="p-pad">
       ${brandrow("var(--helder-beige)")}
       <div class="p-badge">${v.badge && v.badge !== "— geen —" ? `<span class="p-pill">${esc(v.badge)}</span>` : ""}</div>
@@ -213,7 +216,7 @@ const RENDER = {
       <div class="p-tijd">${esc(v.tijd)}</div>
       <div class="p-waar serif">${esc(v.waar)}</div>
       <span class="p-pill">Loop vrijblijvend binnen</span>
-      <div class="p-photo"><img src="${fotoSrc()}" alt=""></div>
+      ${fotoBlok("")}
       ${bottomrow(tel)}
     </div>`;
   },
@@ -356,7 +359,7 @@ async function fontsAlsCSS() {
 }
 async function posterCSSTekst() {
   if (cache.posterCSS) return cache.posterCSS;
-  return (cache.posterCSS = await (await fetch("poster.css?v=4")).text());
+  return (cache.posterCSS = await (await fetch("poster.css?v=5")).text());
 }
 
 async function downloadPNG() {

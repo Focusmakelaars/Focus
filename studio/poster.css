@@ -83,6 +83,16 @@
 .p-placeholder strong { font-size: 42px; font-weight: 600; }
 .p-placeholder .serif { font-size: 32px; color: var(--iris-bruin); }
 
+/* donkere variant (Verkocht, full-bleed) */
+.p-placeholder--donker { background: #26292e; color: var(--helder-beige); }
+.p-placeholder--donker::before { border-color: rgba(247,243,235,.22); }
+.p-placeholder--donker svg { color: var(--focus-oranje); }
+.p-placeholder--donker .serif { color: var(--comfort-beige); }
+.t-verkocht .p-fullphoto .p-placeholder { position: absolute; inset: 150px 66px 46% 66px; border-radius: 34px; }
+
+/* placeholder in het Open huis-boogkader: rechte hoeken ogen rustiger */
+.t-openhuis .p-photo:has(.p-placeholder) { border-radius: 34px; }
+
 .p-pill {
   display: inline-flex; align-items: center;
   background: var(--warm-oranje); color: var(--wit);
