@@ -531,6 +531,152 @@ async function rwKies(o) {
   }
 }
 
+/* ---------- brochure-tab ---------- */
+let brHtml = null;
+
+const BR_STATUS = {
+  BESCHIKBAAR: "Te koop", IN_AANMELDING: "Binnenkort te koop", IN_VOORBEREIDING: "Binnenkort te koop",
+  ONDER_BOD: "Onder bod", ONDER_OPTIE: "Onder optie", VERKOCHT_ONDER_VOORBEHOUD: "Verkocht o.v.",
+  VERKOCHT: "Verkocht", VERHUURD: "Verhuurd"
+};
+
+function brNet(s) {
+  if (!s) return null;
+  s = String(s).replace(/_/g, " ").toLowerCase();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function brEuro(n) { return "€ " + Math.round(n).toLocaleString("nl-NL"); }
+
+function brKenmerken(obj) {
+  const alg = obj.algemeen || {}, fin = (obj.financieel || {}).overdracht || {};
+  const det = obj.detail || {}, buiten = det.buitenruimte || {}, etages = det.etages || [];
+  const slaap = etages.reduce((s, e) => s + (e.aantalSlaapkamers || 0), 0) || null;
+  const bad = etages.reduce((s, e) => s + ((e.badkamers || []).length), 0) || null;
+  const eerste = a => (a && a.length ? brNet(a[0]) : null);
+  const conditie = { KOSTEN_KOPER: "k.k.", VRIJ_OP_NAAM: "v.o.n." }[fin.koopconditie] || "";
+  const prijs = fin.koopprijs || fin.huurprijs;
+
+  const blok = (titel, rijen) => {
+    rijen = rijen.filter(([, v]) => v != null && v !== "");
+    if (!rijen.length) return "";
+    return `<div class="kblok"><h3>${titel}</h3><table>` +
+      rijen.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("") + `</table></div>`;
+  };
+  return blok("Overdracht", [
+      ["Status", BR_STATUS[fin.status] || brNet(fin.status)],
+      [brNet(fin.koopprijsvoorvoegsel) || "Vraagprijs", prijs ? `${brEuro(prijs)} ${conditie}`.trim() : null],
+      ["Aanvaarding", brNet(fin.aanvaarding)],
+      ["Servicekosten", fin.servicekosten ? brEuro(fin.servicekosten) + " p.m." : null]])
+    + blok("Bouw", [
+      ["Soort", brNet(alg.woonhuistype) || brNet(alg.appartementsoort)],
+      ["Bouwjaar", alg.bouwjaar], ["Bouwvorm", brNet(alg.bouwvorm)],
+      ["Dak", eerste(alg.dakmaterialen)]])
+    + blok("Oppervlakten & inhoud", [
+      ["Woonoppervlakte", alg.woonoppervlakte ? alg.woonoppervlakte + " m²" : null],
+      ["Perceel", alg.totaleKadestraleOppervlakte ? alg.totaleKadestraleOppervlakte + " m²" : null],
+      ["Inhoud", alg.inhoud ? alg.inhoud + " m³" : null],
+      ["Tuin", buiten.tuinTotaleOppervlakte ? `${buiten.tuinTotaleOppervlakte} m² (${brNet(buiten.hoofdtuintype)})` : brNet(buiten.hoofdtuintype)]])
+    + blok("Indeling", [
+      ["Kamers", alg.aantalKamers], ["Slaapkamers", slaap], ["Badkamers", bad],
+      ["Woonlagen", etages.length || null]])
+    + blok("Energie", [
+      ["Energielabel", alg.energieklasse], ["Verwarming", eerste(alg.verwarmingsoorten)],
+      ["CV-ketel", alg.cvKetelBouwjaar ? `${brNet(alg.cvKetelBrandstof)} (${alg.cvKetelBouwjaar})` : null],
+      ["Isolatie", eerste(alg.isolatievormen)]])
+    + blok("Buiten", [
+      ["Garage", eerste(buiten.garagesoorten)], ["Parkeren", eerste(buiten.parkeerfaciliteiten)],
+      ["Berging", brNet(buiten.schuurBergingSoort)], ["Ligging", eerste(alg.liggingen)]]);
+}
+
+async function brDataURL(url) {
+  const blob = await (await fetch(url)).blob();
+  return naarDataURL(blob);
+}
+
+async function brKies(compactObj) {
+  const st = $("#brStatus");
+  st.textContent = "Brochure samenstellen…";
+  try {
+    const obj = await (await fetch(`${RW_PROXY}/object/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
+    const adres = obj.adres || {}, teksten = obj.teksten || {}, fin = (obj.financieel || {}).overdracht || {};
+    const nr = ((adres.huisnummer || {}).hoofdnummer || "") +
+               ((adres.huisnummer || {}).toevoeging ? "-" + adres.huisnummer.toevoeging : "");
+    const plaats = (adres.plaats || "").split(" ").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
+    const media = (obj.media || []).filter(m => ["HOOFDFOTO", "FOTO"].includes(m.soort) && m.vrijgave)
+      .sort((a, b) => (a.soort !== "HOOFDFOTO") - (b.soort !== "HOOFDFOTO") || (a.volgnummer || 99) - (b.volgnummer || 99))
+      .slice(0, 6);
+    const fotos = [];
+    for (const m of media) {
+      try { fotos.push(await brDataURL(`${RW_PROXY}/foto?url=${encodeURIComponent(m.link)}`)); } catch {}
+    }
+    const vestNaam = $("#brVestiging").value;
+    const vest = FOCUS.vestigingen[vestNaam];
+    const conditie = { KOSTEN_KOPER: "k.k.", VRIJ_OP_NAAM: "v.o.n." }[fin.koopconditie] || "";
+    const prijs = fin.koopprijs || fin.huurprijs;
+    const logo = await laadLogo();
+    const qr = await brDataURL("qr-waardecheck.png");
+    const brandfoto = await brDataURL("../assets/img/makelaar-gesprek.png");
+    const fontsUrl = new URL("../assets/fonts", location.href).href;
+
+    let html = await (await fetch("brochure-sjabloon.html?v=1")).text();
+    const img = src => src ? `<img src="${src}" alt="">` : "";
+    const vervang = {
+      "{STRAAT}": esc(adres.straat || ""), "{HUISNR}": esc(nr), "{PLAATS_NET}": esc(plaats),
+      "{POSTCODE}": esc(adres.postcode || ""),
+      "{STATUS_LABEL}": BR_STATUS[fin.status] || brNet(fin.status) || "Te koop",
+      "{PRIJS_PILL}": (prijs ? `<span class="pill">${brEuro(prijs)} ${conditie}</span>` : "") +
+                      (fin.aanvaarding ? `<span class="sub">Aanvaarding: ${brNet(fin.aanvaarding).toLowerCase()}</span>` : ""),
+      "{AANBIEDINGSTEKST}": esc(teksten.a4Tekst || teksten.aanbiedingstekst || teksten.flyertekst || ""),
+      "{KENMERKEN}": brKenmerken(obj),
+      "{VESTIGING}": vestNaam, "{TELEFOON}": vest.telefoon, "{MAIL}": vest.mail,
+      "{ADRES_VESTIGING}": esc(vest.adres),
+      "{QR}": qr, "{LOGO}": logo,
+      "{FOTO_COVER}": img(fotos[0]), "{FOTOS_P2}": fotos.slice(1, 3).map(f => `<div>${img(f)}</div>`).join("") || "<div></div><div></div>",
+      "{FOTOS_P3}": fotos.slice(3, 6).map(f => `<div>${img(f)}</div>`).join("") || "<div></div><div></div><div></div>",
+      "{FOTO_BRAND}": img(brandfoto), "{FONTS}": fontsUrl
+    };
+    for (const [k, v] of Object.entries(vervang)) html = html.split(k).join(v);
+    brHtml = html;
+    const frame = $("#brPreview");
+    frame.srcdoc = html;
+    frame.classList.remove("is-verborgen");
+    $("#brLeeg").classList.add("is-verborgen");
+    $("#brPrint").disabled = false;
+    st.textContent = `${adres.straat} ${nr}, ${plaats} — klaar (${fotos.length} foto's)`;
+  } catch (e) {
+    st.textContent = "Brochure maken mislukte: " + e.message;
+  }
+}
+
+function brInit() {
+  const bv = $("#brVestiging");
+  bv.innerHTML = Object.keys(FOCUS.vestigingen).map(v => `<option${v === state.vestiging ? " selected" : ""}>${v}</option>`).join("");
+  const sel = $("#brSelect");
+  const st = $("#brStatus");
+  const vul = () => {
+    if (!rwObjecten.length) {
+      st.innerHTML = "Geen verbinding met Realworks.<br>Start de proxy op deze PC en herlaad de pagina.";
+      sel.innerHTML = '<option value="" selected disabled>Niet beschikbaar</option>';
+      return;
+    }
+    sel.disabled = false;
+    sel.innerHTML = '<option value="" selected disabled>Kies een woning…</option>' +
+      rwObjecten.map((o, i) => `<option value="${i}">${esc(o.straat)} ${esc(o.huisnummer)}, ${esc(o.plaats)}</option>`).join("");
+    st.textContent = `${rwObjecten.length} woning(en) beschikbaar`;
+  };
+  // rwInit draait async bij opstart; even kort daarna vullen
+  setTimeout(vul, 2500);
+  sel.addEventListener("change", () => brKies(rwObjecten[+sel.value]));
+  bv.addEventListener("change", () => { if (sel.value !== "") brKies(rwObjecten[+sel.value]); });
+  $("#brPrint").addEventListener("click", () => {
+    if (!brHtml) return;
+    const w = window.open("", "_blank");
+    w.document.write(brHtml);
+    w.document.close();
+    setTimeout(() => w.print(), 900);
+  });
+}
+
 /* ---------- events ---------- */
 function init() {
   $("#topBeeldmerk").innerHTML = beeldmerkSVG();
@@ -597,6 +743,7 @@ function init() {
   $$(".tab").forEach(t => t.addEventListener("click", () => {
     $$(".tab").forEach(x => x.classList.toggle("is-active", x === t));
     $("#tab-social").classList.toggle("is-verborgen", t.dataset.tab !== "social");
+    $("#tab-brochure").classList.toggle("is-verborgen", t.dataset.tab !== "brochure");
     $("#tab-handtekening").classList.toggle("is-verborgen", t.dataset.tab !== "handtekening");
     if (t.dataset.tab === "social") schaalPodium();
   }));
@@ -628,6 +775,7 @@ function init() {
   bouwInputs();
   render();
   rwInit();
+  brInit();
 }
 
 document.addEventListener("DOMContentLoaded", init);
