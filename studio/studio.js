@@ -594,17 +594,58 @@ async function brDataURL(url) {
 }
 
 const ED_LAYOUTS = {
-  cover:       { naam: "Cover" },
-  fototekst:   { naam: "Grote foto + tekst" },
-  raster:      { naam: "Fotoraster 2×2" },
-  vol:         { naam: "Paginavullende foto" },
-  tekst3:      { naam: "Tekst + 3 foto's" },
-  bijzonder:   { naam: "Bijzonderheden" },
-  kenmerken:   { naam: "Kenmerken (automatisch)" },
-  plattegrond: { naam: "Plattegrond" },
-  overfocus:   { naam: "Over Focus (vast)" },
-  contact:     { naam: "Contact (vast)" }
+  cover:        { naam: "Cover" },
+  fototekst:    { naam: "Grote foto + tekst" },
+  raster:       { naam: "Fotoraster 2×2" },
+  vol:          { naam: "Paginavullende foto" },
+  tekst3:       { naam: "Tekst + 3 foto's" },
+  bijzonder:    { naam: "Bijzonderheden" },
+  kenmerken:    { naam: "Kenmerken (automatisch)" },
+  plattegrond:  { naam: "Plattegrond" },
+  lijstvanzaken:{ naam: "Lijst van zaken (automatisch)" },
+  kaarten:      { naam: "Kadastrale kaart + locatie" },
+  overfocus:    { naam: "Over Focus (vast)" },
+  contact:      { naam: "Contact (vast)" }
 };
+
+/* lijst van zaken: geneste Realworks-structuur → platte rijen */
+const LVZ_ANTWOORDEN = [["BLIJFT_ACHTER", "Blijft achter"], ["GAAT_MEE", "Gaat mee"], ["KAN_WORDEN_OVERGENOMEN", "Ter overname"]];
+const LVZ_PER_PAGINA = 40;
+
+function edLvzRijen(data) {
+  const label = k => k.replace(/([A-Z])/g, " $1").toLowerCase().replace(/^./, c => c.toUpperCase());
+  const isItem = v => v && typeof v === "object" && "antwoord" in v && "vraag" in v;
+  const rijen = [];
+  const loop = (node, pad) => {
+    const uit = [];
+    for (const [k, v] of Object.entries(node)) {
+      if (k === "omschrijving" || !v || typeof v !== "object") continue;
+      if (isItem(v)) {
+        if (v.antwoord && v.antwoord !== "NVT" && !/^Vrije invulling/i.test(v.vraag || ""))
+          uit.push({ type: "item", tekst: v.vraag, antwoord: v.antwoord, sleutel: `${pad}.${k}` });
+      } else {
+        const kinderen = loop(v, `${pad}.${k}`);
+        if (kinderen.length) {
+          uit.push({ type: v.omschrijving ? "kop" : "groep", tekst: v.omschrijving || label(k) });
+          uit.push(...kinderen);
+        }
+      }
+    }
+    return uit;
+  };
+  for (const [hoofd, inhoud] of Object.entries(data || {})) {
+    if (!inhoud || typeof inhoud !== "object") continue;
+    const kinderen = loop(inhoud, hoofd);
+    if (kinderen.length) rijen.push({ type: "groep", tekst: label(hoofd) }, ...kinderen);
+  }
+  return rijen;
+}
+
+function edLvzDeel(paginaIndex) {
+  let deel = 0;
+  for (let i = 0; i < paginaIndex; i++) if (ed.paginas[i].layout === "lijstvanzaken") deel++;
+  return deel;
+}
 
 const ED_LEEG_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>`;
 
@@ -613,7 +654,9 @@ function edOpslagKey() {
 }
 function edBewaar() {
   try {
-    localStorage.setItem(edOpslagKey(), JSON.stringify({ paginas: ed.paginas, vestiging: $("#brVestiging").value }));
+    localStorage.setItem(edOpslagKey(), JSON.stringify({
+      paginas: ed.paginas, vestiging: $("#brVestiging").value, lvzOverrides: ed.lvzOverrides || {}
+    }));
   } catch { $("#brHint").textContent = "Let op: opslag vol — uploads worden niet bewaard"; }
 }
 
@@ -716,6 +759,34 @@ function edPaginaHTML(p, nr) {
         <span class="bkicker">Indeling</span>
         ${edTekst(p, "kop", "", "Bijv. Plattegrond begane grond…", "h2")}
         ${edSlot(p, "f1", "bslot--contain")}</div>`;
+    case "lijstvanzaken": {
+      const rijen = ed.lvz || [];
+      const deel = edLvzDeel(nr - 1);
+      const stuk = rijen.slice(deel * LVZ_PER_PAGINA, (deel + 1) * LVZ_PER_PAGINA);
+      const kolommen = LVZ_ANTWOORDEN.map(([, l]) => `<th class="k">${l}</th>`).join("");
+      const rijHTML = stuk.map(r => {
+        if (r.type !== "item") return `<tr class="${r.type}"><td colspan="4">${esc(r.tekst)}</td></tr>`;
+        const antwoord = (ed.lvzOverrides || {})[r.sleutel] || r.antwoord;
+        const cellen = LVZ_ANTWOORDEN.map(([a]) =>
+          `<td class="k" data-lvz="${esc(r.sleutel)}" data-ant="${a}"><span class="${antwoord === a ? "aan" : ""}"></span></td>`).join("");
+        return `<tr><td>${esc(r.tekst)}</td>${cellen}</tr>`;
+      }).join("");
+      const rest = rijen.length - (deel + 1) * LVZ_PER_PAGINA;
+      return `<div class="bp bp--lvz">${logo}${nrBadge}
+        <span class="bkicker">Lijst van zaken${deel ? ` · vervolg ${deel + 1}` : ""}</span>
+        <h2>Wat blijft, wat gaat mee, <span class="serif">wat kun je overnemen.</span></h2>
+        <table><tr><th>Beschrijving</th>${kolommen}</tr>${rijHTML ||
+          '<tr><td colspan="4">Alle punten staan al op de eerdere lijst-pagina’s.</td></tr>'}</table>
+        ${rest > 0 ? `<div class="vervolg">&rarr; nog ${rest} punten &mdash; voeg nog een "Lijst van zaken"-pagina toe</div>` : ""}</div>`;
+    }
+    case "kaarten": {
+      const locatie = (!p.fotos.f2 && ed.kaart)
+        ? `<div class="bslot bslot--contain" data-slot="f2"><img src="${ed.kaart}" alt=""></div>`
+        : edSlot(p, "f2", "bslot--contain");
+      return `<div class="bp bp--kaarten">${logo}${nrBadge}
+        <div class="helft"><h3>Kadastrale <span class="serif">kaart.</span></h3>${edSlot(p, "f1", "bslot--contain")}</div>
+        <div class="helft"><h3>Locatie <span class="serif">op de kaart.</span></h3>${locatie}</div></div>`;
+    }
     case "overfocus":
       return `<div class="bp bp--overfocus">${logo}${nrBadge}
         <span class="bkicker">Over Focus Makelaars</span>
@@ -761,7 +832,16 @@ function edStandaardPaginas(obj) {
     { layout: "bijzonder", fotos: { f1: foto(10) }, teksten: { lijst: "" } },
     { layout: "kenmerken", fotos: {}, teksten: {} }
   ];
-  if (plattegrondIdx >= 0) paginas.push({ layout: "plattegrond", fotos: { f1: { bron: "media", i: plattegrondIdx } }, teksten: { kop: "Plattegrond" } });
+  // lijst van zaken: zoveel pagina's als nodig
+  const lvzPaginas = Math.ceil((ed.lvz || []).length / LVZ_PER_PAGINA);
+  for (let i = 0; i < lvzPaginas; i++) paginas.push({ layout: "lijstvanzaken", fotos: {}, teksten: {} });
+  // kaartenpagina (kadastrale kaart uploaden; locatiekaart komt automatisch)
+  paginas.push({ layout: "kaarten", fotos: {}, teksten: {} });
+  // één plattegrond-pagina per plattegrond in Realworks (soms 1, soms 5)
+  media.forEach((m, i) => {
+    if (m.soort === "PLATTEGROND")
+      paginas.push({ layout: "plattegrond", fotos: { f1: { bron: "media", i } }, teksten: { kop: "Plattegrond" } });
+  });
   paginas.push({ layout: "overfocus", fotos: {}, teksten: {} });
   paginas.push({ layout: "contact", fotos: {}, teksten: {} });
   return paginas;
@@ -819,11 +899,26 @@ async function edKies(compactObj) {
         ed.media.push(mediaRuw[i]);
       } catch { /* foto overslaan */ }
     }
+    // lijst van zaken ophalen
+    ed.lvz = []; ed.lvzOverrides = {};
+    try {
+      st.textContent = "Lijst van zaken ophalen…";
+      const lvzData = await (await fetch(`${RW_PROXY}/lijstvanzaken/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
+      ed.lvz = edLvzRijen(lvzData);
+    } catch { /* geen lijst beschikbaar */ }
+    // locatiekaart ophalen (OpenStreetMap via proxy)
+    try {
+      st.textContent = "Locatiekaart maken…";
+      const adr = obj.adres || {}, h = adr.huisnummer || {};
+      const zoek = `${adr.straat || ""} ${h.hoofdnummer || ""}, ${adr.postcode || ""} ${adr.plaats || ""}`;
+      ed.kaart = await brDataURL(`${RW_PROXY}/kaart?q=${encodeURIComponent(zoek)}`);
+    } catch { ed.kaart = null; }
     // eerder werk terugzetten of standaardopzet maken
     let bewaard = null;
     try { bewaard = JSON.parse(localStorage.getItem(`focus-brochure:${compactObj.afdelingscode}/${compactObj.objectcode}`)); } catch {}
     if (bewaard && bewaard.paginas && bewaard.paginas.length) {
       ed.paginas = bewaard.paginas;
+      ed.lvzOverrides = bewaard.lvzOverrides || {};
       if (bewaard.vestiging && FOCUS.vestigingen[bewaard.vestiging]) $("#brVestiging").value = bewaard.vestiging;
       st.textContent = "Eerder werk aan deze brochure teruggezet";
     } else {
@@ -854,7 +949,7 @@ async function edKies(compactObj) {
 async function edPrint() {
   if (!ed) return;
   $("#brHint").textContent = "PDF-weergave openen…";
-  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=1")).text()]);
+  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=2")).text()]);
   const paginasHTML = ed.paginas.map((p, i) => edPaginaHTML(p, i + 1)).join("");
   const doc = `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Brochure</title>
     <style>${fonts}\n${paginaCSS}\n@page{size:210mm 297mm;margin:0}html,body{margin:0;padding:0}.bp{page-break-after:always}
@@ -926,8 +1021,18 @@ function brInit() {
     if (mini) { ed.actief = +mini.dataset.p; edRender(); }
   });
 
-  // canvas: fotoslots + tekstinvoer
+  // canvas: fotoslots, lijst-van-zaken-vinkjes + tekstinvoer
   $("#edCanvas").addEventListener("click", e => {
+    const cel = e.target.closest("[data-lvz]");
+    if (cel && ed) {
+      const sleutel = cel.dataset.lvz, ant = cel.dataset.ant;
+      const origineel = (ed.lvz.find(r => r.sleutel === sleutel) || {}).antwoord;
+      ed.lvzOverrides = ed.lvzOverrides || {};
+      const huidig = ed.lvzOverrides[sleutel] || origineel;
+      ed.lvzOverrides[sleutel] = huidig === ant ? "GEEN" : ant;
+      edRender();
+      return;
+    }
     const slot = e.target.closest(".bslot");
     if (slot && !e.target.closest("[contenteditable]")) edOpenFotoKiezer(slot.dataset.slot);
   });

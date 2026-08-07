@@ -91,6 +91,27 @@
 .bp--plattegrond h2 { font-size: 15.5pt; font-weight: 700; margin-top: 2.5mm; min-height: 9mm; }
 .bp--plattegrond .bslot { flex: 1; margin-top: 5mm; border-radius: 4mm; }
 
+/* ---------- layout: lijst van zaken ---------- */
+.bp--lvz { padding: 24mm 14mm 12mm; display: flex; flex-direction: column; }
+.bp--lvz h2 { font-size: 14pt; font-weight: 700; margin-top: 2mm; }
+.bp--lvz h2 .serif { color: #B0836B; font-weight: 500; }
+.bp--lvz table { width: 100%; border-collapse: collapse; font-size: 7.4pt; margin-top: 3.5mm; }
+.bp--lvz th { text-align: left; font-size: 6.6pt; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #B0836B; padding: 1mm 1.5mm; border-bottom: .5mm solid #DFD1BB; }
+.bp--lvz th.k, .bp--lvz td.k { width: 14mm; text-align: center; }
+.bp--lvz td { padding: .85mm 1.5mm; border-bottom: .2mm solid rgba(223,209,187,.55); }
+.bp--lvz tr.groep td { padding-top: 2.8mm; font-weight: 700; font-size: 8.4pt; color: #F15D22; border-bottom: none; }
+.bp--lvz tr.kop td { font-weight: 600; color: #4b4a45; border-bottom: none; }
+.bp--lvz td.k span { display: inline-block; width: 3.4mm; height: 3.4mm; border-radius: 1mm; border: .4mm solid #DFD1BB; vertical-align: middle; }
+.bp--lvz td.k span.aan { background: #F15D22; border-color: #F15D22; }
+.bp--lvz .vervolg { margin-top: auto; font-size: 7pt; color: #B0836B; padding-top: 2mm; }
+
+/* ---------- layout: kaarten (kadastrale kaart + locatie) ---------- */
+.bp--kaarten { padding: 26mm 14mm 14mm; display: flex; flex-direction: column; gap: 6mm; }
+.bp--kaarten .helft { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.bp--kaarten h3 { font-size: 11pt; font-weight: 700; margin-bottom: 2.5mm; }
+.bp--kaarten h3 .serif { color: #B0836B; font-weight: 500; }
+.bp--kaarten .bslot { flex: 1; border-radius: 4mm; }
+
 /* ---------- layout: overfocus (vast) ---------- */
 .bp--overfocus { padding: 26mm 14mm 0; display: flex; flex-direction: column; }
 .bp--overfocus h2 { font-size: 19pt; font-weight: 700; line-height: 1.15; margin-top: 3mm; }
