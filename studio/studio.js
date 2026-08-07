@@ -1305,7 +1305,7 @@ function wnInit() {
 }
 
 /* ---------- toegangspoort ---------- */
-const POORT_HASH = "9e1e944f59a6640b1954eb32962cbcaf9003933611438146a5944c3decf6ff98";
+const POORT_HASH = "8c2574892063f995fdf756bce07f46c1a5193e54cd52837ed91e32008ccf41ac";
 
 async function sha256hex(tekst) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(tekst));
@@ -1323,7 +1323,7 @@ function poortInit() {
   } catch {}
   $("#poortForm").addEventListener("submit", async e => {
     e.preventDefault();
-    const hash = await sha256hex($("#poortWachtwoord").value.trim().toLowerCase());
+    const hash = await sha256hex($("#poortWachtwoord").value.trim());
     if (hash === POORT_HASH) {
       try { localStorage.setItem("fs-toegang", hash); } catch {}
       poort.classList.add("is-verborgen");
