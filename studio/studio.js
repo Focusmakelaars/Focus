@@ -531,8 +531,8 @@ async function rwKies(o) {
   }
 }
 
-/* ---------- brochure-tab ---------- */
-let brHtml = null;
+/* ---------- brochure-editor ---------- */
+let ed = null; // { compact, obj, media:[{link,soort,dataurl}], paginas:[], actief, qr, brandfotos }
 
 const BR_STATUS = {
   BESCHIKBAAR: "Te koop", IN_AANMELDING: "Binnenkort te koop", IN_VOORBEREIDING: "Binnenkort te koop",
@@ -593,59 +593,278 @@ async function brDataURL(url) {
   return naarDataURL(blob);
 }
 
-async function brKies(compactObj) {
+const ED_LAYOUTS = {
+  cover:       { naam: "Cover" },
+  fototekst:   { naam: "Grote foto + tekst" },
+  raster:      { naam: "Fotoraster 2×2" },
+  vol:         { naam: "Paginavullende foto" },
+  tekst3:      { naam: "Tekst + 3 foto's" },
+  bijzonder:   { naam: "Bijzonderheden" },
+  kenmerken:   { naam: "Kenmerken (automatisch)" },
+  plattegrond: { naam: "Plattegrond" },
+  overfocus:   { naam: "Over Focus (vast)" },
+  contact:     { naam: "Contact (vast)" }
+};
+
+const ED_LEEG_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>`;
+
+function edOpslagKey() {
+  return `focus-brochure:${ed.compact.afdelingscode}/${ed.compact.objectcode}`;
+}
+function edBewaar() {
+  try {
+    localStorage.setItem(edOpslagKey(), JSON.stringify({ paginas: ed.paginas, vestiging: $("#brVestiging").value }));
+  } catch { $("#brHint").textContent = "Let op: opslag vol — uploads worden niet bewaard"; }
+}
+
+function edFotoSrc(ref) {
+  if (!ref) return null;
+  if (ref.bron === "upload") return ref.dataurl;
+  const m = ed.media[ref.i];
+  return m ? m.dataurl : null;
+}
+
+function edSlot(p, slot, extraClass) {
+  const src = edFotoSrc(p.fotos[slot]);
+  const inhoud = src ? `<img src="${src}" alt="">` :
+    `<div class="bslot-leeg">${ED_LEEG_SVG}<span>Klik om een foto<br>te kiezen</span></div>`;
+  return `<div class="bslot ${extraClass || ""}" data-slot="${slot}">${inhoud}</div>`;
+}
+function edTekst(p, slot, cls, hint, tag) {
+  const t = tag || "div";
+  return `<${t} class="btekst ${cls}" contenteditable="true" data-tslot="${slot}" data-hint="${hint}">${esc(p.teksten[slot] || "")}</${t}>`;
+}
+
+function edKern(obj) {
+  const alg = obj.algemeen || {}, fin = (obj.financieel || {}).overdracht || {};
+  const det = obj.detail || {};
+  const items = [];
+  const prijs = fin.koopprijs || fin.huurprijs;
+  if (prijs) items.push([brEuro(prijs), fin.huurprijs && !fin.koopprijs ? "huur p.m." : ({ KOSTEN_KOPER: "k.k.", VRIJ_OP_NAAM: "v.o.n." }[fin.koopconditie] || "vraagprijs")]);
+  if (alg.bouwjaar) items.push([alg.bouwjaar, "bouwjaar"]);
+  if (alg.woonoppervlakte) items.push([alg.woonoppervlakte + " m²", "woonoppervlakte"]);
+  if (alg.totaleKadestraleOppervlakte) items.push([alg.totaleKadestraleOppervlakte + " m²", "perceel"]);
+  if (alg.aantalKamers) items.push([alg.aantalKamers, "kamers"]);
+  if (alg.energieklasse) items.push([alg.energieklasse, "energielabel"]);
+  return items.slice(0, 6).map(([w, l]) => `<div><strong>${esc(w)}</strong><span>${esc(l)}</span></div>`).join("");
+}
+
+function edPaginaHTML(p, nr) {
+  const obj = ed.obj, adres = obj.adres || {}, fin = (obj.financieel || {}).overdracht || {};
+  const hn = (adres.huisnummer || {});
+  const straatnr = `${adres.straat || ""} ${hn.hoofdnummer || ""}${hn.toevoeging ? "-" + hn.toevoeging : ""}`.trim();
+  const plaats = (adres.plaats || "").split(" ").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
+  const vest = FOCUS.vestigingen[$("#brVestiging").value] || Object.values(FOCUS.vestigingen)[0];
+  const vestNaam = $("#brVestiging").value;
+  const logo = `<div class="bp-logo">${ed.logo}</div>`;
+  const nrBadge = nr > 1 ? `<span class="bp-nr">${nr}</span>` : "";
+
+  switch (p.layout) {
+    case "cover": {
+      const prijs = fin.koopprijs || fin.huurprijs;
+      return `<div class="bp bp--cover">${edSlot(p, "f1")}
+        <div class="onder">
+          <span class="bkicker">${BR_STATUS[fin.status] || "Te koop"} &middot; ${esc(plaats)}</span>
+          <h1>${esc(straatnr)}</h1>
+          <div class="plaats">${esc(adres.postcode || "")} ${esc(plaats)}</div>
+          ${prijs ? `<div class="prijs"><span>${brEuro(prijs)} ${({ KOSTEN_KOPER: "k.k.", VRIJ_OP_NAAM: "v.o.n." }[fin.koopconditie] || "")}</span></div>` : ""}
+          <div class="kern">${edKern(obj)}</div>
+        </div>
+        <div class="bp-merkrow">Focus Makelaars ${esc(vestNaam)}</div>
+        <div class="bp-logo bp-logo--wit">${ed.logoWit}</div></div>`;
+    }
+    case "fototekst":
+      return `<div class="bp bp--fototekst">${logo}${nrBadge}
+        <div class="links"><span class="bkicker">${esc(straatnr)}</span>
+          ${edTekst(p, "kop", "", "Klik om een kop te typen…", "h2")}
+          ${edTekst(p, "lopend", "btekst--lopend", "Klik en typ of plak hier de tekst — bijvoorbeeld uit het Realworks-paneel links.")}
+          ${edSlot(p, "f2")}
+        </div>
+        <div class="rechts">${edSlot(p, "f1")}</div></div>`;
+    case "raster":
+      return `<div class="bp bp--raster">${logo}${nrBadge}
+        <div class="grid">${edSlot(p, "f1")}${edSlot(p, "f2")}${edSlot(p, "f3")}${edSlot(p, "f4")}</div>
+        ${edTekst(p, "caption", "btekst--caption", "Optioneel bijschrift…")}</div>`;
+    case "vol":
+      return `<div class="bp bp--vol">${edSlot(p, "f1")}<div class="scrim"></div>
+        <div class="bp-logo bp-logo--wit">${ed.logoWit}</div>
+        ${edTekst(p, "caption", "btekst--caption", "Klik voor een bijschrift over deze foto…")}</div>`;
+    case "tekst3":
+      return `<div class="bp bp--tekst3">${logo}${nrBadge}
+        <div class="links"><span class="bkicker">${esc(straatnr)}</span>
+          ${edTekst(p, "kop", "", "Klik om een kop te typen…", "h2")}
+          ${edTekst(p, "lopend", "btekst--lopend", "Klik en typ of plak hier de tekst…")}
+        </div>
+        <div class="rechts">${edSlot(p, "f1")}${edSlot(p, "f2")}${edSlot(p, "f3")}</div></div>`;
+    case "bijzonder":
+      return `<div class="bp bp--bijzonder">${logo}${nrBadge}
+        ${edSlot(p, "f1")}
+        <h2>Bijzonderheden <span class="serif">op een rij.</span></h2>
+        ${edTekst(p, "lijst", "btekst--lijst", "Klik en typ de bijzonderheden — elke regel wordt een punt…")}</div>`;
+    case "kenmerken":
+      return `<div class="bp" style="padding:26mm 14mm 14mm;display:flex;flex-direction:column">${logo}${nrBadge}
+        <span class="bkicker">De feiten</span>
+        <h2 style="font-size:15.5pt;font-weight:700;margin-top:2.5mm">Alles op een rij, <span class="serif" style="color:#B0836B;font-weight:500">zwart op wit.</span></h2>
+        <div style="margin-top:6mm;display:grid;grid-template-columns:1fr 1fr;gap:5mm 8mm">${brKenmerken(obj)
+          .replace(/class="kblok"/g, 'style="background:#fff;border-radius:4mm;padding:5mm 6mm 4mm"')
+          .replace(/<h3>/g, '<h3 style="font-size:9.5pt;font-weight:700;color:#F15D22;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2.5mm">')
+          .replace(/<table>/g, '<table style="width:100%;border-collapse:collapse;font-size:9pt">')
+          .replace(/<td>/g, '<td style="padding:1.1mm 0;color:#4b4a45;width:42%">')
+          .replace(/<td([^>]*)>(?!.*width)/g, "<td$1>")}</div></div>`;
+    case "plattegrond":
+      return `<div class="bp bp--plattegrond">${logo}${nrBadge}
+        <span class="bkicker">Indeling</span>
+        ${edTekst(p, "kop", "", "Bijv. Plattegrond begane grond…", "h2")}
+        ${edSlot(p, "f1", "bslot--contain")}</div>`;
+    case "overfocus":
+      return `<div class="bp bp--overfocus">${logo}${nrBadge}
+        <span class="bkicker">Over Focus Makelaars</span>
+        <h2>Niet alleen oog voor de markt, <span class="serif">maar vooral voor de mens.</span></h2>
+        <p class="intro">Focus Makelaars begeleidt mensen tijdens één van de belangrijkste stappen in hun leven. Door lokale marktkennis te combineren met persoonlijke aandacht helpen we je met vertrouwen een woning te kopen of verkopen. Deskundig, helder en oprecht betrokken — dat is de Focus Methodiek:</p>
+        <div class="stappen">
+          <div class="stap"><b>1</b><div><strong>Fundament</strong> · <span>waar sta je vandaag? We beginnen met goed luisteren.</span></div></div>
+          <div class="stap"><b>2</b><div><strong>Oog voor kansen</strong> · <span>waar wil je naartoe? Samen bepalen we de beste strategie.</span></div></div>
+          <div class="stap"><b>3</b><div><strong>Connectie</strong> · <span>wie brengt je verder? Heldere communicatie met alle betrokkenen.</span></div></div>
+          <div class="stap"><b>4</b><div><strong>Uitvoering</strong> · <span>hoe maken we het waar? Van presentatie tot onderhandeling.</span></div></div>
+          <div class="stap"><b>5</b><div><strong>Succes</strong> · <span>het resultaat van Focus: terugkijken met een goed gevoel.</span></div></div>
+        </div>
+        <div class="foto"><img src="${ed.brandfotos[0]}" alt=""></div></div>`;
+    case "contact":
+      return `<div class="bp bp--contact">
+        <div class="foto"><img src="${ed.brandfotos[1]}" alt=""></div>
+        <div class="bp-logo bp-logo--wit">${ed.logoWit}</div>
+        <div class="fototekst"><h2>Benieuwd geworden? <span class="serif">De koffie staat klaar.</span></h2></div>
+        <div class="onder">
+          <p>Plan een bezichtiging, stel je vragen of loop gewoon eens binnen. We kijken graag met je mee — <span class="serif" style="color:#F15D22">met oog voor jou.</span></p>
+          <div class="kaart">
+            <div class="t"><h3>Plan een <span class="serif">bezichtiging.</span></h3>
+              <p>Bel <strong>${esc(vest.telefoon)}</strong> of mail <strong>${esc(vest.mail)}</strong><br>Focus Makelaars ${esc(vestNaam)} &middot; ${esc(vest.adres)}</p></div>
+            <div class="qr"><img src="${ed.qr}" alt="QR"><span>Scan voor de gratis<br>online waardecheck</span></div>
+          </div>
+          <div class="voet"><strong>Focus Makelaars ${esc(vestNaam)}</strong> &middot; ${esc(vest.adres)} &middot; ${esc(vest.telefoon)} &middot; ${esc(vest.mail)} &mdash; met oog voor jou. Aan deze brochure kunnen geen rechten worden ontleend. Maten en gegevens zijn indicatief.</div>
+        </div></div>`;
+  }
+  return `<div class="bp">${logo}</div>`;
+}
+
+function edStandaardPaginas(obj) {
+  const teksten = obj.teksten || {};
+  const tekst = teksten.a4Tekst || teksten.aanbiedingstekst || "";
+  const media = ed.media;
+  const foto = i => (media[i] ? { bron: "media", i } : undefined);
+  const plattegrondIdx = media.findIndex(m => m.soort === "PLATTEGROND");
+  const paginas = [
+    { layout: "cover", fotos: { f1: foto(0) }, teksten: {} },
+    { layout: "fototekst", fotos: { f1: foto(1), f2: foto(2) }, teksten: { kop: "Welkom binnen.", lopend: tekst } },
+    { layout: "raster", fotos: { f1: foto(3), f2: foto(4), f3: foto(5), f4: foto(6) }, teksten: {} },
+    { layout: "tekst3", fotos: { f1: foto(7), f2: foto(8), f3: foto(9) }, teksten: { kop: "", lopend: "" } },
+    { layout: "bijzonder", fotos: { f1: foto(10) }, teksten: { lijst: "" } },
+    { layout: "kenmerken", fotos: {}, teksten: {} }
+  ];
+  if (plattegrondIdx >= 0) paginas.push({ layout: "plattegrond", fotos: { f1: { bron: "media", i: plattegrondIdx } }, teksten: { kop: "Plattegrond" } });
+  paginas.push({ layout: "overfocus", fotos: {}, teksten: {} });
+  paginas.push({ layout: "contact", fotos: {}, teksten: {} });
+  return paginas;
+}
+
+function edRenderStrip() {
+  const strip = $("#edStrip");
+  strip.innerHTML = ed.paginas.map((p, i) =>
+    `<div class="ed-mini${i === ed.actief ? " is-actief" : ""}" data-p="${i}">
+       <div class="ed-mini__schaal">${edPaginaHTML(p, i + 1)}</div>
+       <span class="ed-mini__nr">${i + 1}</span></div>`).join("") +
+    `<button class="ed-nieuw" id="edNieuw" title="Pagina toevoegen">+</button>`;
+  strip.querySelectorAll(".ed-mini [contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
+}
+
+function edRenderCanvas() {
+  const p = ed.paginas[ed.actief];
+  $("#edCanvas").innerHTML = edPaginaHTML(p, ed.actief + 1);
+  $("#edLayout").value = p.layout;
+}
+
+function edRender() {
+  edRenderCanvas();
+  edRenderStrip();
+  edBewaar();
+}
+
+let edFotoSlotDoel = null;
+function edOpenFotoKiezer(slot) {
+  edFotoSlotDoel = slot;
+  const grid = $("#edFotoGrid");
+  grid.innerHTML = ed.media.map((m, i) =>
+    `<button data-i="${i}"><img src="${m.dataurl}" alt="">${m.soort === "PLATTEGROND" ? '<span class="tag">Plattegrond</span>' : ""}</button>`).join("") ||
+    '<p style="color:var(--ink-soft)">Geen media gevonden bij deze woning.</p>';
+  $("#edFotoModal").classList.remove("is-verborgen");
+}
+function edSluitFotoKiezer() { $("#edFotoModal").classList.add("is-verborgen"); edFotoSlotDoel = null; }
+
+async function edKies(compactObj) {
   const st = $("#brStatus");
-  st.textContent = "Brochure samenstellen…";
+  st.textContent = "Woning laden…";
   try {
     const obj = await (await fetch(`${RW_PROXY}/object/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
-    const adres = obj.adres || {}, teksten = obj.teksten || {}, fin = (obj.financieel || {}).overdracht || {};
-    const nr = ((adres.huisnummer || {}).hoofdnummer || "") +
-               ((adres.huisnummer || {}).toevoeging ? "-" + adres.huisnummer.toevoeging : "");
-    const plaats = (adres.plaats || "").split(" ").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
-    const media = (obj.media || []).filter(m => ["HOOFDFOTO", "FOTO"].includes(m.soort) && m.vrijgave)
-      .sort((a, b) => (a.soort !== "HOOFDFOTO") - (b.soort !== "HOOFDFOTO") || (a.volgnummer || 99) - (b.volgnummer || 99))
-      .slice(0, 6);
-    const fotos = [];
-    for (const m of media) {
-      try { fotos.push(await brDataURL(`${RW_PROXY}/foto?url=${encodeURIComponent(m.link)}`)); } catch {}
+    const mediaRuw = (obj.media || []).filter(m => ["HOOFDFOTO", "FOTO", "PLATTEGROND"].includes(m.soort) && m.vrijgave)
+      .sort((a, b) => (a.soort !== "HOOFDFOTO") - (b.soort !== "HOOFDFOTO") || (a.volgnummer || 99) - (b.volgnummer || 99));
+    ed = { compact: compactObj, obj, media: [], paginas: [], actief: 0 };
+    ed.logo = await laadLogo();
+    ed.logoWit = ed.logo.replace(/currentColor/g, "#FFFFFF").replace('class="logo"', "");
+    ed.qr = await brDataURL("qr-waardecheck.png");
+    ed.brandfotos = [await brDataURL("../assets/img/stel-tuin.png"), await brDataURL("../assets/img/makelaar-gesprek.png")];
+    for (let i = 0; i < mediaRuw.length; i++) {
+      st.textContent = `Foto's laden… (${i + 1}/${mediaRuw.length})`;
+      try {
+        mediaRuw[i].dataurl = await brDataURL(`${RW_PROXY}/foto?url=${encodeURIComponent(mediaRuw[i].link)}`);
+        ed.media.push(mediaRuw[i]);
+      } catch { /* foto overslaan */ }
     }
-    const vestNaam = $("#brVestiging").value;
-    const vest = FOCUS.vestigingen[vestNaam];
-    const conditie = { KOSTEN_KOPER: "k.k.", VRIJ_OP_NAAM: "v.o.n." }[fin.koopconditie] || "";
-    const prijs = fin.koopprijs || fin.huurprijs;
-    const logo = await laadLogo();
-    const qr = await brDataURL("qr-waardecheck.png");
-    const brandfoto = await brDataURL("../assets/img/makelaar-gesprek.png");
-    const fontsUrl = new URL("../assets/fonts", location.href).href;
+    // eerder werk terugzetten of standaardopzet maken
+    let bewaard = null;
+    try { bewaard = JSON.parse(localStorage.getItem(`focus-brochure:${compactObj.afdelingscode}/${compactObj.objectcode}`)); } catch {}
+    if (bewaard && bewaard.paginas && bewaard.paginas.length) {
+      ed.paginas = bewaard.paginas;
+      if (bewaard.vestiging && FOCUS.vestigingen[bewaard.vestiging]) $("#brVestiging").value = bewaard.vestiging;
+      st.textContent = "Eerder werk aan deze brochure teruggezet";
+    } else {
+      ed.paginas = edStandaardPaginas(obj);
+      st.textContent = `${ed.media.length} foto's geladen — bouw je brochure`;
+    }
+    // teksten-paneel
+    const namen = { aanbiedingstekst: "Aanbiedingstekst", a4Tekst: "A4-tekst", flyertekst: "Flyertekst", eigenSiteTekst: "Eigen-site-tekst", aanbiedingstekstEngels: "Aanbiedingstekst (EN)" };
+    const tk = obj.teksten || {};
+    $("#edTeksten").innerHTML = Object.entries(namen)
+      .filter(([k]) => tk[k])
+      .map(([k, naam]) => `<div class="ed-tekst"><strong>${naam}</strong><p>${esc(tk[k])}</p><button data-kopie="${k}">Kopieer tekst</button></div>`)
+      .join("") || '<p class="hint hint--licht">Geen teksten bij deze woning.</p>';
+    $("#edTekstenVeld").classList.remove("is-verborgen");
 
-    let html = await (await fetch("brochure-sjabloon.html?v=1")).text();
-    const img = src => src ? `<img src="${src}" alt="">` : "";
-    const vervang = {
-      "{STRAAT}": esc(adres.straat || ""), "{HUISNR}": esc(nr), "{PLAATS_NET}": esc(plaats),
-      "{POSTCODE}": esc(adres.postcode || ""),
-      "{STATUS_LABEL}": BR_STATUS[fin.status] || brNet(fin.status) || "Te koop",
-      "{PRIJS_PILL}": (prijs ? `<span class="pill">${brEuro(prijs)} ${conditie}</span>` : "") +
-                      (fin.aanvaarding ? `<span class="sub">Aanvaarding: ${brNet(fin.aanvaarding).toLowerCase()}</span>` : ""),
-      "{AANBIEDINGSTEKST}": esc(teksten.a4Tekst || teksten.aanbiedingstekst || teksten.flyertekst || ""),
-      "{KENMERKEN}": brKenmerken(obj),
-      "{VESTIGING}": vestNaam, "{TELEFOON}": vest.telefoon, "{MAIL}": vest.mail,
-      "{ADRES_VESTIGING}": esc(vest.adres),
-      "{QR}": qr, "{LOGO}": logo,
-      "{FOTO_COVER}": img(fotos[0]), "{FOTOS_P2}": fotos.slice(1, 3).map(f => `<div>${img(f)}</div>`).join("") || "<div></div><div></div>",
-      "{FOTOS_P3}": fotos.slice(3, 6).map(f => `<div>${img(f)}</div>`).join("") || "<div></div><div></div><div></div>",
-      "{FOTO_BRAND}": img(brandfoto), "{FONTS}": fontsUrl
-    };
-    for (const [k, v] of Object.entries(vervang)) html = html.split(k).join(v);
-    brHtml = html;
-    const frame = $("#brPreview");
-    frame.srcdoc = html;
-    frame.classList.remove("is-verborgen");
-    $("#brLeeg").classList.add("is-verborgen");
+    $("#edLeeg").classList.add("is-verborgen");
+    $("#edCanvas").classList.remove("is-verborgen");
+    $("#edStrip").classList.remove("is-verborgen");
+    $("#edToolbar").classList.remove("is-verborgen");
     $("#brPrint").disabled = false;
-    st.textContent = `${adres.straat} ${nr}, ${plaats} — klaar (${fotos.length} foto's)`;
+    ed.actief = 0;
+    edRender();
   } catch (e) {
-    st.textContent = "Brochure maken mislukte: " + e.message;
+    st.textContent = "Laden mislukte: " + e.message;
   }
+}
+
+async function edPrint() {
+  if (!ed) return;
+  $("#brHint").textContent = "PDF-weergave openen…";
+  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=1")).text()]);
+  const paginasHTML = ed.paginas.map((p, i) => edPaginaHTML(p, i + 1)).join("");
+  const doc = `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Brochure</title>
+    <style>${fonts}\n${paginaCSS}\n@page{size:210mm 297mm;margin:0}html,body{margin:0;padding:0}.bp{page-break-after:always}
+    .bslot-leeg{display:none!important}[contenteditable]{outline:none}</style></head><body>${paginasHTML}</body></html>`;
+  const w = window.open("", "_blank");
+  w.document.write(doc);
+  w.document.close();
+  w.document.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
+  setTimeout(() => w.print(), 1100);
+  $("#brHint").textContent = "Kies 'Opslaan als PDF' in het printvenster";
 }
 
 function brInit() {
@@ -664,17 +883,98 @@ function brInit() {
       rwObjecten.map((o, i) => `<option value="${i}">${esc(o.straat)} ${esc(o.huisnummer)}, ${esc(o.plaats)}</option>`).join("");
     st.textContent = `${rwObjecten.length} woning(en) beschikbaar`;
   };
-  // rwInit draait async bij opstart; even kort daarna vullen
   setTimeout(vul, 2500);
-  sel.addEventListener("change", () => brKies(rwObjecten[+sel.value]));
-  bv.addEventListener("change", () => { if (sel.value !== "") brKies(rwObjecten[+sel.value]); });
-  $("#brPrint").addEventListener("click", () => {
-    if (!brHtml) return;
-    const w = window.open("", "_blank");
-    w.document.write(brHtml);
-    w.document.close();
-    setTimeout(() => w.print(), 900);
+  sel.addEventListener("change", () => edKies(rwObjecten[+sel.value]));
+  bv.addEventListener("change", () => { if (ed) edRender(); });
+
+  const layoutSel = $("#edLayout");
+  layoutSel.innerHTML = Object.entries(ED_LAYOUTS).map(([k, v]) => `<option value="${k}">${v.naam}</option>`).join("");
+  layoutSel.addEventListener("change", () => {
+    if (!ed) return;
+    ed.paginas[ed.actief].layout = layoutSel.value;
+    edRender();
   });
+  $("#edOmhoog").addEventListener("click", () => {
+    if (!ed || ed.actief === 0) return;
+    const p = ed.paginas.splice(ed.actief, 1)[0];
+    ed.paginas.splice(--ed.actief, 0, p);
+    edRender();
+  });
+  $("#edOmlaag").addEventListener("click", () => {
+    if (!ed || ed.actief >= ed.paginas.length - 1) return;
+    const p = ed.paginas.splice(ed.actief, 1)[0];
+    ed.paginas.splice(++ed.actief, 0, p);
+    edRender();
+  });
+  $("#edVerwijder").addEventListener("click", () => {
+    if (!ed || ed.paginas.length <= 1) return;
+    ed.paginas.splice(ed.actief, 1);
+    ed.actief = Math.min(ed.actief, ed.paginas.length - 1);
+    edRender();
+  });
+
+  // paginastrip: selecteren + toevoegen
+  $("#edStrip").addEventListener("click", e => {
+    const nieuw = e.target.closest("#edNieuw");
+    if (nieuw && ed) {
+      ed.paginas.splice(++ed.actief, 0, { layout: "fototekst", fotos: {}, teksten: {} });
+      ed.actief = Math.min(ed.actief, ed.paginas.length - 1);
+      edRender();
+      return;
+    }
+    const mini = e.target.closest(".ed-mini");
+    if (mini) { ed.actief = +mini.dataset.p; edRender(); }
+  });
+
+  // canvas: fotoslots + tekstinvoer
+  $("#edCanvas").addEventListener("click", e => {
+    const slot = e.target.closest(".bslot");
+    if (slot && !e.target.closest("[contenteditable]")) edOpenFotoKiezer(slot.dataset.slot);
+  });
+  let stripTimer = null;
+  $("#edCanvas").addEventListener("input", e => {
+    const el = e.target.closest("[data-tslot]");
+    if (!el || !ed) return;
+    ed.paginas[ed.actief].teksten[el.dataset.tslot] = el.innerText;
+    clearTimeout(stripTimer);
+    stripTimer = setTimeout(() => { edRenderStrip(); edBewaar(); }, 600);
+  });
+
+  // fotokiezer
+  $("#edFotoSluit").addEventListener("click", edSluitFotoKiezer);
+  $("#edFotoModal").addEventListener("click", e => { if (e.target === $("#edFotoModal")) edSluitFotoKiezer(); });
+  $("#edFotoGrid").addEventListener("click", e => {
+    const b = e.target.closest("button[data-i]");
+    if (!b || !ed || edFotoSlotDoel == null) return;
+    ed.paginas[ed.actief].fotos[edFotoSlotDoel] = { bron: "media", i: +b.dataset.i };
+    edSluitFotoKiezer();
+    edRender();
+  });
+  $("#edFotoUpload").addEventListener("change", async e => {
+    const f = e.target.files[0];
+    if (!f || !ed || edFotoSlotDoel == null) return;
+    ed.paginas[ed.actief].fotos[edFotoSlotDoel] = { bron: "upload", dataurl: await naarDataURL(f) };
+    e.target.value = "";
+    edSluitFotoKiezer();
+    edRender();
+  });
+  $("#edFotoLeeg").addEventListener("click", () => {
+    if (!ed || edFotoSlotDoel == null) return;
+    delete ed.paginas[ed.actief].fotos[edFotoSlotDoel];
+    edSluitFotoKiezer();
+    edRender();
+  });
+
+  // teksten-paneel: kopieerknoppen
+  $("#edTeksten").addEventListener("click", async e => {
+    const b = e.target.closest("button[data-kopie]");
+    if (!b || !ed) return;
+    await navigator.clipboard.writeText((ed.obj.teksten || {})[b.dataset.kopie] || "");
+    b.textContent = "Gekopieerd!";
+    setTimeout(() => { b.textContent = "Kopieer tekst"; }, 2500);
+  });
+
+  $("#brPrint").addEventListener("click", edPrint);
 }
 
 /* ---------- events ---------- */

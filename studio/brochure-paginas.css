@@ -1,0 +1,126 @@
+/* ============================================================
+   FOCUS BROCHURE — pagina-layouts (A4)
+   Gebruikt door de editor (op schaal) én de print/PDF-uitvoer.
+   ============================================================ */
+
+.bp {
+  width: 210mm; height: 297mm; position: relative; overflow: hidden;
+  background: var(--helder-beige, #F7F3EB);
+  font-family: "Silka", sans-serif; color: var(--pupil-zwart, #1D2023);
+}
+.bp * { box-sizing: border-box; }
+.bp .serif { font-family: "STIX Two Text", Georgia, serif; font-style: italic; }
+.bp-logo { position: absolute; top: 11mm; left: 14mm; z-index: 5; }
+.bp-logo svg { height: 8mm; width: auto; color: var(--warm-oranje, #F15D22); display: block; }
+.bp-logo--wit svg { color: #fff; }
+.bp-nr { position: absolute; bottom: 6mm; right: 14mm; font-size: 7pt; color: #B0836B; font-weight: 600; }
+
+/* fotoslots */
+.bslot { background: #DFD1BB; position: relative; overflow: hidden; }
+.bslot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bslot--contain { background: #fff; }
+.bslot--contain img { object-fit: contain; }
+.bslot .bslot-leeg {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2mm;
+  color: #B0836B; font-size: 8.5pt; font-weight: 600; text-align: center; padding: 4mm;
+}
+.bslot .bslot-leeg svg { width: 9mm; height: 9mm; color: #F15D22; }
+
+/* tekstblokken */
+.btekst { outline: none; }
+.btekst:empty::before { content: attr(data-hint); color: #B0836B; font-style: italic; }
+
+/* koppen */
+.bp .bkicker {
+  display: inline-flex; align-items: center; gap: 2.5mm; font-size: 8pt; font-weight: 600;
+  letter-spacing: .2em; text-transform: uppercase; color: #F15D22;
+}
+.bp .bkicker::before { content: ""; width: 8mm; height: .7mm; background: #F15D22; border-radius: 1mm; }
+
+/* ---------- layout: cover ---------- */
+.bp--cover .bslot { position: absolute; inset: 0 0 auto 0; height: 186mm; }
+.bp--cover .onder { position: absolute; left: 0; right: 0; bottom: 0; top: 186mm; padding: 9mm 14mm 0; display: flex; flex-direction: column; }
+.bp--cover h1 { font-size: 27pt; font-weight: 700; line-height: 1.05; letter-spacing: -.015em; margin-top: 2.5mm; }
+.bp--cover .plaats { font-family: "STIX Two Text", Georgia, serif; font-style: italic; font-size: 14pt; color: #B0836B; margin-top: 1mm; }
+.bp--cover .prijs { margin-top: 4mm; }
+.bp--cover .prijs span { background: #F15D22; color: #fff; border-radius: 99mm; padding: 2.6mm 7mm; font-size: 12.5pt; font-weight: 700; }
+.bp--cover .kern { margin-top: auto; margin-bottom: 9mm; display: flex; gap: 2.5mm; }
+.bp--cover .kern div { flex: 1; background: #fff; border-radius: 3mm; padding: 2.8mm 2mm 2.4mm; text-align: center; }
+.bp--cover .kern strong { display: block; font-size: 10.5pt; font-weight: 900; letter-spacing: -.01em; }
+.bp--cover .kern span { display: block; font-size: 6pt; color: #4b4a45; margin-top: .7mm; }
+.bp--cover .bp-merkrow { position: absolute; top: 197mm; right: 14mm; font-size: 8pt; font-weight: 600; color: #B0836B; }
+
+/* ---------- layout: fototekst (grote foto rechts + tekstkolom) ---------- */
+.bp--fototekst { padding: 26mm 14mm 14mm; display: grid; grid-template-columns: 86mm 1fr; gap: 7mm; }
+.bp--fototekst .links { display: flex; flex-direction: column; min-width: 0; }
+.bp--fototekst h2 { font-size: 15.5pt; font-weight: 700; line-height: 1.15; margin-top: 2.5mm; min-height: 9mm; }
+.bp--fototekst .btekst--lopend { margin-top: 4mm; font-size: 9.2pt; line-height: 1.7; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; }
+.bp--fototekst .links .bslot { height: 62mm; border-radius: 4mm; margin-top: 5mm; flex: none; }
+.bp--fototekst .rechts { border-radius: 4mm; overflow: hidden; }
+.bp--fototekst .rechts .bslot { height: 100%; }
+
+/* ---------- layout: raster 2x2 ---------- */
+.bp--raster { padding: 26mm 14mm 14mm; display: flex; flex-direction: column; }
+.bp--raster .grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 5mm; }
+.bp--raster .grid .bslot { border-radius: 4mm; }
+.bp--raster .btekst--caption { margin-top: 4mm; font-size: 8.5pt; color: #4b4a45; text-align: center; min-height: 5mm; }
+
+/* ---------- layout: vol (full-bleed foto + bijschrift) ---------- */
+.bp--vol .bslot { position: absolute; inset: 0; }
+.bp--vol .scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 60mm; background: linear-gradient(180deg, rgba(29,32,35,0), rgba(29,32,35,.62)); pointer-events: none; }
+.bp--vol .btekst--caption { position: absolute; left: 14mm; right: 14mm; bottom: 12mm; color: #fff; font-size: 13pt; font-weight: 600; line-height: 1.35; min-height: 8mm; }
+
+/* ---------- layout: tekst3 (tekst + 3 foto's rechts) ---------- */
+.bp--tekst3 { padding: 26mm 14mm 14mm; display: grid; grid-template-columns: 1fr 64mm; gap: 7mm; }
+.bp--tekst3 .links { display: flex; flex-direction: column; min-width: 0; }
+.bp--tekst3 h2 { font-size: 15.5pt; font-weight: 700; line-height: 1.15; margin-top: 2.5mm; min-height: 9mm; }
+.bp--tekst3 .btekst--lopend { margin-top: 4mm; font-size: 9.2pt; line-height: 1.7; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; }
+.bp--tekst3 .rechts { display: flex; flex-direction: column; gap: 5mm; }
+.bp--tekst3 .rechts .bslot { flex: 1; border-radius: 4mm; }
+
+/* ---------- layout: bijzonder ---------- */
+.bp--bijzonder { padding: 26mm 14mm 14mm; display: flex; flex-direction: column; }
+.bp--bijzonder .bslot { height: 74mm; border-radius: 4mm; flex: none; }
+.bp--bijzonder h2 { font-size: 15.5pt; font-weight: 700; margin-top: 7mm; }
+.bp--bijzonder h2 .serif { color: #B0836B; font-weight: 500; }
+.bp--bijzonder .btekst--lijst { margin-top: 4mm; font-size: 9.5pt; line-height: 1.95; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; }
+
+/* ---------- layout: plattegrond ---------- */
+.bp--plattegrond { padding: 26mm 14mm 14mm; display: flex; flex-direction: column; }
+.bp--plattegrond h2 { font-size: 15.5pt; font-weight: 700; margin-top: 2.5mm; min-height: 9mm; }
+.bp--plattegrond .bslot { flex: 1; margin-top: 5mm; border-radius: 4mm; }
+
+/* ---------- layout: overfocus (vast) ---------- */
+.bp--overfocus { padding: 26mm 14mm 0; display: flex; flex-direction: column; }
+.bp--overfocus h2 { font-size: 19pt; font-weight: 700; line-height: 1.15; margin-top: 3mm; }
+.bp--overfocus h2 .serif { color: #B0836B; font-weight: 500; }
+.bp--overfocus .intro { margin-top: 4mm; font-size: 9.5pt; line-height: 1.7; color: #4b4a45; max-width: 160mm; }
+.bp--overfocus .stappen { margin-top: 7mm; display: flex; flex-direction: column; gap: 3.2mm; }
+.bp--overfocus .stap { background: #fff; border-radius: 3.5mm; padding: 3.6mm 5mm; display: flex; gap: 4mm; align-items: baseline; }
+.bp--overfocus .stap b { color: #F15D22; font-size: 11pt; font-weight: 900; min-width: 7mm; }
+.bp--overfocus .stap strong { font-size: 9.5pt; }
+.bp--overfocus .stap span { font-size: 8.2pt; color: #4b4a45; }
+.bp--overfocus .foto { margin: 7mm -14mm 0; height: 74mm; overflow: hidden; }
+.bp--overfocus .foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ---------- layout: contact (vast) ---------- */
+.bp--contact .foto { position: absolute; inset: 0 0 auto 0; height: 150mm; overflow: hidden; }
+.bp--contact .foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bp--contact .foto::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(29,32,35,.1), rgba(29,32,35,.55)); }
+.bp--contact .fototekst { position: absolute; top: 118mm; left: 14mm; right: 14mm; color: #fff; z-index: 2; }
+.bp--contact .fototekst h2 { font-size: 20pt; font-weight: 700; }
+.bp--contact .fototekst h2 .serif { color: #F6871F; font-weight: 500; }
+.bp--contact .onder { position: absolute; top: 150mm; left: 0; right: 0; bottom: 0; padding: 10mm 14mm 0; display: flex; flex-direction: column; }
+.bp--contact .onder > p { font-size: 9.5pt; color: #4b4a45; line-height: 1.7; max-width: 158mm; }
+.bp--contact .kaart { margin-top: 7mm; background: #1D2023; color: #fff; border-radius: 4.5mm; padding: 7mm 8mm; display: flex; align-items: center; gap: 8mm; position: relative; overflow: hidden; }
+.bp--contact .kaart::after { content: ""; position: absolute; width: 70mm; height: 70mm; border-radius: 50%; border: 1.5px solid rgba(246,135,31,.3); right: -28mm; top: -28mm; }
+.bp--contact .kaart .t { flex: 1; }
+.bp--contact .kaart h3 { font-size: 14pt; font-weight: 700; }
+.bp--contact .kaart h3 .serif { color: #F6871F; font-weight: 500; }
+.bp--contact .kaart p { margin-top: 2.5mm; font-size: 9.5pt; color: #DFD1BB; line-height: 1.65; }
+.bp--contact .kaart p strong { color: #fff; }
+.bp--contact .kaart .qr { position: relative; z-index: 1; text-align: center; }
+.bp--contact .kaart .qr img { width: 25mm; height: 25mm; background: #fff; padding: 1.7mm; border-radius: 2.5mm; display: block; }
+.bp--contact .kaart .qr span { display: block; margin-top: 1.5mm; font-size: 6.4pt; color: #DFD1BB; }
+.bp--contact .voet { margin-top: auto; margin-left: -14mm; margin-right: -14mm; padding: 3.6mm 14mm 4.5mm; background: #DFD1BB; font-size: 6.6pt; color: #4b4a45; line-height: 1.55; }

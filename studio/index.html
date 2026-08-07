@@ -8,7 +8,8 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
 <link rel="stylesheet" href="poster.css?v=5">
-<link rel="stylesheet" href="studio.css?v=3">
+<link rel="stylesheet" href="studio.css?v=4">
+<link rel="stylesheet" href="brochure-paginas.css?v=1">
 </head>
 <body>
 
@@ -99,7 +100,7 @@
   </section>
 </main>
 
-<!-- ================= BROCHURE ================= -->
+<!-- ================= BROCHURE-EDITOR ================= -->
 <main class="studio is-verborgen" id="tab-brochure">
   <aside class="panel">
     <section class="veld reveal" style="--d:0">
@@ -108,23 +109,58 @@
       <p class="hint hint--licht" id="brStatus" style="margin-top:.6rem">Verbinden met Realworks…</p>
     </section>
     <section class="veld reveal" style="--d:1">
-      <h2 class="veld__kop">Vestiging (contactpagina)</h2>
+      <h2 class="veld__kop">Vestiging</h2>
       <select id="brVestiging" class="select"></select>
     </section>
-    <section class="veld veld--acties reveal" style="--d:2">
+    <section class="veld reveal is-verborgen" style="--d:2" id="edTekstenVeld">
+      <h2 class="veld__kop">Teksten uit Realworks</h2>
+      <p class="uitleg">Kopieer een tekst en plak 'm in een tekstvak op de pagina.</p>
+      <div id="edTeksten"><!-- dynamisch --></div>
+    </section>
+    <section class="veld veld--acties reveal" style="--d:3">
       <button class="knop knop--primair" id="brPrint" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         Print / opslaan als PDF
       </button>
-      <p class="hint" id="brHint">4 pagina's A4 — kies "Opslaan als PDF" in het printvenster</p>
+      <p class="hint" id="brHint">Je werk wordt automatisch bewaard per woning</p>
     </section>
   </aside>
-  <section class="podium podium--brochure">
-    <div id="brLeeg" class="br-leeg">
-      <p><strong>Nog geen woning gekozen.</strong><br>Kies links een woning uit Realworks — je ziet hier direct de complete brochure.</p>
+
+  <section class="podium podium--editor">
+    <div class="ed-strip is-verborgen" id="edStrip"><!-- paginaminiaturen --></div>
+    <div class="ed-main">
+      <div class="ed-toolbar is-verborgen" id="edToolbar">
+        <label>Pagina-layout</label>
+        <select id="edLayout" class="select select--klein"></select>
+        <span class="ed-toolbar__rek"></span>
+        <button class="ed-knopje" id="edOmhoog" title="Pagina naar voren">&larr;</button>
+        <button class="ed-knopje" id="edOmlaag" title="Pagina naar achteren">&rarr;</button>
+        <button class="ed-knopje ed-knopje--rood" id="edVerwijder" title="Pagina verwijderen">&times;</button>
+      </div>
+      <div class="ed-canvas">
+        <div id="edLeeg" class="br-leeg">
+          <p><strong>Nog geen woning gekozen.</strong><br>Kies links een woning uit Realworks en bouw hier je brochure op — pagina voor pagina, precies zoals jij 'm wilt.</p>
+        </div>
+        <div class="ed-schaal is-verborgen" id="edCanvas"><!-- actieve pagina --></div>
+      </div>
     </div>
-    <iframe id="brPreview" class="is-verborgen" title="Brochurevoorbeeld"></iframe>
   </section>
+
+  <!-- fotokiezer -->
+  <div class="ed-modal is-verborgen" id="edFotoModal">
+    <div class="ed-modal__kaart">
+      <div class="ed-modal__kop"><strong>Kies een foto of plattegrond</strong><button id="edFotoSluit" aria-label="Sluiten">&times;</button></div>
+      <div class="ed-modal__grid" id="edFotoGrid"></div>
+      <div class="ed-modal__voet">
+        <label class="knop knop--tweede">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Eigen bestand uploaden
+          <input type="file" id="edFotoUpload" accept="image/*" hidden>
+        </label>
+        <button class="knop knop--tweede" id="edFotoLeeg">Vak leegmaken</button>
+      </div>
+    </div>
+  </div>
 </main>
 
 <!-- ================= HANDTEKENING ================= -->
@@ -185,6 +221,6 @@
 
 <canvas id="werkCanvas" hidden></canvas>
 <script src="data.js?v=1"></script>
-<script src="studio.js?v=9"></script>
+<script src="studio.js?v=10"></script>
 </body>
 </html>
