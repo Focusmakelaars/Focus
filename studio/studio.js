@@ -464,6 +464,7 @@ async function kopieerSig() {
 let RW_PROXY = "http://127.0.0.1:8465";
 const RW_SLEUTEL = "fs-x7q9-oog-2026";
 let rwObjecten = [];
+let wnVulFn = null, brVulFn = null; // worden gezet door wnInit/brInit, aangeroepen zodra objecten binnen zijn
 
 function rwFetch(pad, opts) {
   opts = opts || {};
@@ -509,6 +510,11 @@ async function rwInit() {
     sel.addEventListener("change", () => rwKies(rwObjecten[+sel.value]));
     $("#rwVeld").classList.remove("is-verborgen");
   } catch { /* proxy draait niet — sectie blijft verborgen */ }
+  finally {
+    // hub en brochure-kiezer nu pas vullen — geen race met de (tragere) tunnel
+    if (wnVulFn) wnVulFn();
+    if (brVulFn) brVulFn();
+  }
 }
 
 function rwToepassen() {
@@ -1022,7 +1028,7 @@ function brInit() {
       rwObjecten.map((o, i) => `<option value="${i}">${esc(o.straat)} ${esc(o.huisnummer)}, ${esc(o.plaats)}</option>`).join("");
     st.textContent = `${rwObjecten.length} woning(en) beschikbaar`;
   };
-  setTimeout(vul, 2500);
+  brVulFn = vul;
   sel.addEventListener("change", () => edKies(rwObjecten[+sel.value]));
   bv.addEventListener("change", () => { if (ed) edRender(); });
 
@@ -1281,7 +1287,7 @@ function wnInit() {
     zoek.disabled = false;
     $("#wnStatus").textContent = `${rwObjecten.length} woning(en) uit Realworks — typ om te zoeken`;
   };
-  setTimeout(vul, 2500);
+  wnVulFn = vul;
 
   zoek.addEventListener("input", toonResultaten);
   zoek.addEventListener("focus", toonResultaten);
