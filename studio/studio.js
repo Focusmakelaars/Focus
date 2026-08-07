@@ -16,7 +16,7 @@ const state = {
   template: "tekoop",
   formaat: "f45",
   vestiging: "Helmond",
-  gloed: true,
+  gloed: false,
   fotoOrigineel: null,   // data-URL zoals aangeleverd
   fotoGloed: null,       // data-URL met warme gloed
   fotoIsUpload: false,
