@@ -961,7 +961,7 @@ async function edKies(compactObj) {
 async function edPrint() {
   if (!ed) return;
   $("#brHint").textContent = "PDF-weergave openen…";
-  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=2")).text()]);
+  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=3")).text()]);
   const paginasHTML = ed.paginas.map((p, i) => edPaginaHTML(p, i + 1)).join("");
   const doc = `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Brochure</title>
     <style>${fonts}\n${paginaCSS}\n@page{size:210mm 297mm;margin:0}html,body{margin:0;padding:0}.bp{page-break-after:always}
@@ -1110,6 +1110,158 @@ function brInit() {
   $("#brPrint").addEventListener("click", edPrint);
 }
 
+/* ---------- woning-hub + omwonende-mailing ---------- */
+let gekozenWoning = null;      // compact object uit rwObjecten
+let om = { foto: null, teksten: {} };
+
+function toonTab(naam) {
+  $$(".tab").forEach(x => x.classList.toggle("is-active", x.dataset.tab === naam));
+  $$("main[id^='tab-']").forEach(m => m.classList.toggle("is-verborgen", m.id !== "tab-" + naam));
+  if (naam === "social") schaalPodium();
+}
+
+const OM_STANDAARD = {
+  tekoop: {
+    kicker: "Nieuw in de verkoop · bij u in de buurt",
+    kop: (adres) => `${adres} staat <span class="serif">te koop.</span>`,
+    intro: "Misschien heeft u het bord al zien staan: deze woning bij u in de buurt is nieuw in de verkoop.",
+    brief: "Beste buurtbewoner,\n\nBij u in de buurt is deze woning nieuw in de verkoop gekomen. Kent u iemand die hier graag zou wonen — familie, vrienden, collega's? Deel het gerust, of plan een bezichtiging.\n\nEn wist u dat een verkoop in de buurt ook iets zegt over de waarde van úw woning? Met de gratis Focus Waardecheck ziet u het in 60 seconden. Scannen maar!"
+  },
+  verkocht: {
+    kicker: "Verkocht · bij u in de buurt",
+    kop: (adres) => `${adres} is <span class="serif">verkocht.</span>`,
+    intro: "Goed nieuws uit de buurt: deze woning is verkocht — u krijgt binnenkort nieuwe buren.",
+    brief: "Beste buurtbewoner,\n\nDeze woning bij u in de buurt is verkocht. Zo'n verkoop zegt ook iets over de waarde van úw woning — en die is misschien hoger dan u denkt.\n\nBenieuwd? Doe de gratis Focus Waardecheck via de QR-code, of vraag een gratis waardebepaling aan. We komen graag even langs — vrijblijvend, met oog voor u en uw verhaal."
+  },
+  openhuis: {
+    kicker: "Open huis · bij u in de buurt",
+    kop: (adres) => `Kom binnenkijken bij <span class="serif">${adres}.</span>`,
+    intro: "U bent van harte welkom bij het open huis — loop vrijblijvend binnen en kijk rond.",
+    brief: "Beste buurtbewoner,\n\nBinnenkort houden we open huis bij deze woning bij u in de buurt. Kom gerust binnenkijken — of stuur de uitnodiging door aan iemand die hier zou willen wonen.\n\nDatum: (vul in)\nTijd: (vul in)\n\nTot dan! De koffie staat klaar."
+  }
+};
+
+async function omZet(o) {
+  om = { o, foto: null, teksten: om.o && om.o.objectcode === o.objectcode ? om.teksten : {} };
+  $("#omStatus").textContent = `${o.straat} ${o.huisnummer}, ${o.plaats}`;
+  if (o.hoofdfoto) {
+    try { om.foto = await brDataURL(`${RW_PROXY}/foto?url=${encodeURIComponent(o.hoofdfoto)}`); } catch {}
+  }
+  om.logo = om.logo || await laadLogo();
+  om.qr = om.qr || await brDataURL("qr-waardecheck.png");
+  $("#omPrint").disabled = false;
+  $("#omLeeg").classList.add("is-verborgen");
+  $("#omCanvas").classList.remove("is-verborgen");
+  omRender();
+}
+
+function omHTML() {
+  const o = om.o, soort = $("#omSoort").value, std = OM_STANDAARD[soort];
+  const t = om.teksten[soort] || {};
+  const adres = `${o.straat} ${o.huisnummer}`;
+  const vestNaam = $("#omVestiging").value;
+  const vest = FOCUS.vestigingen[vestNaam];
+  const prijs = o.koopprijs ? `€ ${Math.round(o.koopprijs).toLocaleString("nl-NL")} ${o.koopconditie === "VRIJ_OP_NAAM" ? "v.o.n." : "k.k."}` : "";
+  const fotoInhoud = om.foto ? `<img src="${om.foto}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`
+    : '<div style="position:absolute;inset:0;background:#DFD1BB"></div>';
+  return `
+  <div class="mp mp--voor">
+    <div class="bslot" style="background:#DFD1BB">${fotoInhoud}</div>
+    <div class="onder">
+      <span class="mkicker">${std.kicker}</span>
+      <h1>${std.kop(esc(adres))}</h1>
+      <div class="intro btekst" contenteditable="true" data-om="intro">${esc(t.intro ?? std.intro)}</div>
+      <div class="mlogo">${om.logo}<span>${esc(o.plaats)}${prijs ? " · " + prijs : ""}</span></div>
+    </div>
+  </div>
+  <div class="mp mp--achter">
+    <h2>Met oog voor de buurt, <span class="serif">en voor u.</span></h2>
+    <div class="brief btekst" contenteditable="true" data-om="brief">${esc(t.brief ?? std.brief)}</div>
+    <div class="mkaart">
+      <div class="t"><h3>Vragen? <span class="serif">Bel of mail ons.</span></h3>
+        <p><strong>Focus Makelaars ${esc(vestNaam)}</strong><br>${esc(vest.telefoon)} · ${esc(vest.mail)}<br>${esc(vest.adres)}</p></div>
+      <div class="qr"><img src="${om.qr}" alt="QR"><span>Gratis online<br>waardecheck</span></div>
+    </div>
+    <div class="mvoet">Focus Makelaars — met oog voor jou. Liever geen post van ons? Laat het weten via ${esc(vest.mail)}.</div>
+  </div>`;
+}
+
+function omRender() {
+  if (!om.o) return;
+  $("#omCanvas").innerHTML = omHTML();
+}
+
+async function omPrint() {
+  if (!om.o) return;
+  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=3")).text()]);
+  const doc = `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Omwonende-mailing</title>
+    <style>${fonts}\n${css}\n@page{size:148mm 210mm;margin:0}html,body{margin:0;padding:0}[contenteditable]{outline:none}</style>
+    </head><body>${omHTML()}</body></html>`;
+  const w = window.open("", "_blank");
+  w.document.write(doc);
+  w.document.close();
+  w.document.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
+  setTimeout(() => w.print(), 1000);
+}
+
+function wnKies(i) {
+  const o = rwObjecten[i];
+  if (!o) return;
+  gekozenWoning = o;
+  $$("#wnActies .hub__kaart").forEach(b => b.disabled = false);
+  $("#wnStatus").textContent = `${o.straat} ${o.huisnummer}, ${o.plaats} — kies wat je wilt maken`;
+  rwKies(o);                                   // socials alvast vullen
+  const rwSel = $("#rwSelect"); if (rwSel) rwSel.value = i;
+  omZet(o);                                    // mailing alvast klaarzetten
+}
+
+function wnInit() {
+  const sel = $("#wnSelect");
+  const vul = () => {
+    if (!rwObjecten.length) {
+      $("#wnStatus").innerHTML = "Geen verbinding met Realworks — start de proxy op deze PC en herlaad de pagina.<br>De algemene onderdelen hieronder werken gewoon.";
+      sel.innerHTML = '<option value="" selected disabled>Niet beschikbaar</option>';
+      return;
+    }
+    sel.disabled = false;
+    sel.innerHTML = '<option value="" selected disabled>Kies een woning…</option>' +
+      rwObjecten.map((o, i) => `<option value="${i}">${esc(o.straat)} ${esc(o.huisnummer)}, ${esc(o.plaats)}</option>`).join("");
+    $("#wnStatus").textContent = `${rwObjecten.length} woning(en) uit Realworks`;
+  };
+  setTimeout(vul, 2500);
+  sel.addEventListener("change", () => wnKies(+sel.value));
+
+  $("#wnActies").addEventListener("click", e => {
+    const b = e.target.closest(".hub__kaart");
+    if (!b || b.disabled || !gekozenWoning) return;
+    const doel = b.dataset.doel;
+    if (doel === "brochure") {
+      const i = rwObjecten.indexOf(gekozenWoning);
+      const brSel = $("#brSelect");
+      if (!ed || ed.compact.objectcode !== gekozenWoning.objectcode) {
+        if (brSel && !brSel.disabled) brSel.value = i;
+        edKies(gekozenWoning);
+      }
+    }
+    toonTab(doel);
+  });
+  $$(".hub__link").forEach(b => b.addEventListener("click", () => {
+    toonTab(b.dataset.doel === "social-algemeen" ? "social" : b.dataset.doel);
+  }));
+
+  const ov = $("#omVestiging");
+  ov.innerHTML = Object.keys(FOCUS.vestigingen).map(v => `<option${v === state.vestiging ? " selected" : ""}>${v}</option>`).join("");
+  ov.addEventListener("change", omRender);
+  $("#omSoort").addEventListener("change", omRender);
+  $("#omCanvas").addEventListener("input", e => {
+    const el = e.target.closest("[data-om]");
+    if (!el || !om.o) return;
+    const soort = $("#omSoort").value;
+    (om.teksten[soort] = om.teksten[soort] || {})[el.dataset.om] = el.innerText;
+  });
+  $("#omPrint").addEventListener("click", omPrint);
+}
+
 /* ---------- events ---------- */
 function init() {
   $("#topBeeldmerk").innerHTML = beeldmerkSVG();
@@ -1173,13 +1325,7 @@ function init() {
   $("#downloadBtn").addEventListener("click", downloadPNG);
 
   // tabs
-  $$(".tab").forEach(t => t.addEventListener("click", () => {
-    $$(".tab").forEach(x => x.classList.toggle("is-active", x === t));
-    $("#tab-social").classList.toggle("is-verborgen", t.dataset.tab !== "social");
-    $("#tab-brochure").classList.toggle("is-verborgen", t.dataset.tab !== "brochure");
-    $("#tab-handtekening").classList.toggle("is-verborgen", t.dataset.tab !== "handtekening");
-    if (t.dataset.tab === "social") schaalPodium();
-  }));
+  $$(".tab").forEach(t => t.addEventListener("click", () => toonTab(t.dataset.tab)));
 
   // handtekening
   const st = $("#sigTeamlid");
@@ -1209,6 +1355,7 @@ function init() {
   render();
   rwInit();
   brInit();
+  wnInit();
 }
 
 document.addEventListener("DOMContentLoaded", init);

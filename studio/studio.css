@@ -158,6 +158,28 @@ em{font-family:var(--font-serif);font-style:italic}
 .podium__schaal{transform-origin:center;filter:drop-shadow(0 30px 60px rgba(29,32,35,.28));animation:fadein .8s var(--ease) .2s both}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
 
+/* ---------- woning-hub ---------- */
+.studio--hub{display:flex;align-items:flex-start;justify-content:center;overflow:auto}
+.hub{max-width:640px;width:100%;padding:3.2rem 1.5rem 4rem;text-align:center}
+.kicker-hub{display:inline-flex;align-items:center;gap:.6rem;font-size:.74rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--warm-oranje)}
+.kicker-hub::before,.kicker-hub::after{content:"";width:1.8rem;height:2px;background:var(--warm-oranje);border-radius:2px}
+.hub h1{font-size:clamp(1.7rem,4vw,2.3rem);font-weight:700;letter-spacing:-.015em;margin-top:.8rem}
+.hub h1 em{font-family:var(--font-serif,"STIX Two Text",serif);font-style:italic;font-weight:500;color:var(--iris-bruin)}
+.hub__sub{margin:.9rem auto 1.6rem;max-width:34em;color:var(--ink-soft);font-size:.95rem;line-height:1.6}
+.hub__select{max-width:420px;margin-inline:auto}
+.hub__kaarten{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin-top:1.6rem}
+.hub__kaart{background:var(--wit);border-radius:18px;padding:1.2rem 1.1rem;text-align:left;box-shadow:0 14px 34px -20px rgba(29,32,35,.25);transition:all .25s var(--ease-out,ease);display:flex;flex-direction:column;gap:.45rem}
+.hub__kaart strong{font-size:.98rem}
+.hub__kaart span{font-size:.78rem;color:var(--ink-soft);line-height:1.45}
+.hub__kaart:hover:not([disabled]){transform:translateY(-3px);box-shadow:0 20px 44px -20px rgba(241,93,34,.4)}
+.hub__kaart[disabled]{opacity:.45;cursor:not-allowed}
+.hub__overig{margin-top:2.4rem;display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;justify-content:center;align-items:center;font-size:.84rem;color:var(--ink-soft)}
+.hub__link{font-size:.84rem;font-weight:600;color:var(--warm-oranje);text-decoration:underline;text-underline-offset:3px}
+.hub__link:hover{color:var(--pupil-zwart)}
+.tegelgroep{font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--iris-bruin);margin:.85rem 0 .45rem}
+.tegelgroep:first-child{margin-top:0}
+.ed-schaal--a5{height:1200px}
+
 /* ---------- brochure-editor ---------- */
 .br-leeg{margin:auto;max-width:26em;text-align:center;color:var(--ink-soft);background:var(--wit);border-radius:20px;padding:2.2rem 2.4rem;box-shadow:0 24px 60px -30px rgba(29,32,35,.18);line-height:1.6}
 .podium--editor{flex-direction:row;align-items:stretch;padding:0;overflow:hidden}

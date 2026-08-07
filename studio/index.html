@@ -8,8 +8,8 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
 <link rel="stylesheet" href="poster.css?v=5">
-<link rel="stylesheet" href="studio.css?v=6">
-<link rel="stylesheet" href="brochure-paginas.css?v=2">
+<link rel="stylesheet" href="studio.css?v=7">
+<link rel="stylesheet" href="brochure-paginas.css?v=3">
 </head>
 <body>
 
@@ -22,26 +22,66 @@
     </div>
   </div>
   <nav class="tabs" role="tablist">
-    <button class="tab is-active" data-tab="social" role="tab">Social posts</button>
+    <button class="tab is-active" data-tab="woning" role="tab">Woning</button>
+    <button class="tab" data-tab="social" role="tab">Social posts</button>
     <button class="tab" data-tab="brochure" role="tab">Brochure</button>
+    <button class="tab" data-tab="mailing" role="tab">Omwonende-mailing</button>
     <button class="tab" data-tab="handtekening" role="tab">E-mailhandtekening</button>
   </nav>
   <a class="topbar__site" href="../index.html">focusmakelaars.nl →</a>
 </header>
 
+<!-- ================= WONING-HUB ================= -->
+<main class="studio studio--hub" id="tab-woning">
+  <div class="hub">
+    <span class="kicker-hub">Start hier</span>
+    <h1>Over welke <em>woning</em> gaat het?</h1>
+    <p class="hub__sub">Kies een pand uit Realworks — daarna maak je er in één klik socials, een brochure of een omwonende-mailing van. Of ga direct naar de algemene studio-onderdelen.</p>
+    <select id="wnSelect" class="select hub__select" disabled><option value="" selected disabled>Woningen laden…</option></select>
+    <p class="hint hint--licht" id="wnStatus">Verbinden met Realworks…</p>
+
+    <div class="hub__kaarten" id="wnActies">
+      <button class="hub__kaart" data-doel="social" disabled>
+        <strong>📣 Social post</strong>
+        <span>Te koop, verkocht of open huis — adres, prijs en foto staan al klaar</span>
+      </button>
+      <button class="hub__kaart" data-doel="brochure" disabled>
+        <strong>📖 Brochure</strong>
+        <span>Volledige woningbrochure, pagina voor pagina op te bouwen</span>
+      </button>
+      <button class="hub__kaart" data-doel="mailing" disabled>
+        <strong>📬 Omwonende-mailing</strong>
+        <span>Print-kaart voor de buurt: "bij u in de buurt te koop"</span>
+      </button>
+    </div>
+
+    <div class="hub__overig">
+      <span>Niet woning-gebonden:</span>
+      <button class="hub__link" data-doel="social-algemeen">Algemene social posts (team, marktupdate, gezocht)</button>
+      <button class="hub__link" data-doel="handtekening">E-mailhandtekeningen</button>
+    </div>
+  </div>
+</main>
+
 <!-- ================= SOCIAL ================= -->
-<main class="studio" id="tab-social">
+<main class="studio is-verborgen" id="tab-social">
   <aside class="panel">
 
     <section class="veld reveal" style="--d:0">
       <h2 class="veld__kop">Wat wil je delen?</h2>
-      <div class="tegels" id="templateKeuze">
-        <button data-t="tekoop"   class="is-active"><span class="tegel__icon">🏡</span>Te koop</button>
-        <button data-t="verkocht"><span class="tegel__icon">🎉</span>Verkocht</button>
-        <button data-t="openhuis"><span class="tegel__icon">☕</span>Open huis</button>
-        <button data-t="gezocht"><span class="tegel__icon">🔎</span>Gezocht</button>
-        <button data-t="team"><span class="tegel__icon">👋</span>Team</button>
-        <button data-t="markt"><span class="tegel__icon">📈</span>Marktupdate</button>
+      <div id="templateKeuze">
+        <div class="tegelgroep">Deze woning</div>
+        <div class="tegels">
+          <button data-t="tekoop"   class="is-active"><span class="tegel__icon">🏡</span>Te koop</button>
+          <button data-t="verkocht"><span class="tegel__icon">🎉</span>Verkocht</button>
+          <button data-t="openhuis"><span class="tegel__icon">☕</span>Open huis</button>
+        </div>
+        <div class="tegelgroep">Algemeen</div>
+        <div class="tegels">
+          <button data-t="gezocht"><span class="tegel__icon">🔎</span>Gezocht</button>
+          <button data-t="team"><span class="tegel__icon">👋</span>Team</button>
+          <button data-t="markt"><span class="tegel__icon">📈</span>Marktupdate</button>
+        </div>
       </div>
     </section>
 
@@ -166,6 +206,43 @@
   </div>
 </main>
 
+<!-- ================= OMWONENDE-MAILING ================= -->
+<main class="studio is-verborgen" id="tab-mailing">
+  <aside class="panel">
+    <section class="veld reveal" style="--d:0">
+      <h2 class="veld__kop">Woning</h2>
+      <p class="hint hint--licht" id="omStatus">Kies eerst een woning op de Woning-tab.</p>
+    </section>
+    <section class="veld reveal" style="--d:1">
+      <h2 class="veld__kop">Boodschap</h2>
+      <select id="omSoort" class="select">
+        <option value="tekoop" selected>Nieuw in de verkoop</option>
+        <option value="verkocht">Verkocht</option>
+        <option value="openhuis">Uitnodiging open huis</option>
+      </select>
+    </section>
+    <section class="veld reveal" style="--d:2">
+      <h2 class="veld__kop">Vestiging</h2>
+      <select id="omVestiging" class="select"></select>
+    </section>
+    <section class="veld veld--acties reveal" style="--d:3">
+      <button class="knop knop--primair" id="omPrint" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print / opslaan als PDF
+      </button>
+      <p class="hint">A5, voor- en achterzijde — teksten zijn aanklikbaar en aanpasbaar</p>
+    </section>
+  </aside>
+  <section class="podium podium--editor">
+    <div class="ed-main">
+      <div class="ed-canvas">
+        <div id="omLeeg" class="br-leeg"><p><strong>Nog geen woning gekozen.</strong><br>Kies een woning op de Woning-tab en de mailing staat hier klaar.</p></div>
+        <div class="ed-schaal ed-schaal--a5 is-verborgen" id="omCanvas"><!-- A5 voor + achter --></div>
+      </div>
+    </div>
+  </section>
+</main>
+
 <!-- ================= HANDTEKENING ================= -->
 <main class="studio studio--handtekening is-verborgen" id="tab-handtekening">
   <aside class="panel">
@@ -224,6 +301,6 @@
 
 <canvas id="werkCanvas" hidden></canvas>
 <script src="data.js?v=1"></script>
-<script src="studio.js?v=13"></script>
+<script src="studio.js?v=14"></script>
 </body>
 </html>
