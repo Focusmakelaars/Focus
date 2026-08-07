@@ -121,7 +121,8 @@ const SJABLONEN = {
       { id: "kicker", label: "Label", type: "select", opties: ["Te koop", "Nieuw in de verkoop", "Binnenkort te koop", "Te huur"], std: "Te koop" },
       { id: "straat", label: "Straat + huisnummer", std: "Voorbeeldstraat 12" },
       { id: "plaats", label: "Plaats", std: "Helmond" },
-      { id: "prijs",  label: "Prijs (leeg = verbergen)", std: "€ 425.000 k.k." }
+      { id: "prijs",  label: "Prijs (leeg = verbergen)", std: "€ 425.000 k.k." },
+      { id: "toelichting", label: "Toelichting (max ±3 regels, leeg = verbergen)", type: "textarea", std: "" }
     ]
   },
   verkocht: {
@@ -181,13 +182,15 @@ function fotoSrc() {
 
 const RENDER = {
   tekoop(v, tel) {
+    const toel = (v.toelichting || "").trim();
     return `<div class="p-pad">
       ${brandrow("var(--warm-oranje)")}
-      ${fotoBlok("p-rond")}
+      ${fotoBlok("p-rond" + (toel ? " p-photo--kort" : ""))}
       <span class="p-kicker">${esc(v.kicker)}</span>
       <div class="p-straat" data-fit="46">${esc(v.straat)}</div>
       <div class="p-plaats serif">${esc(v.plaats)}</div>
       ${v.prijs ? `<div class="p-prijsrow"><span class="p-pill">${esc(v.prijs)}</span></div>` : ""}
+      ${toel ? `<div class="p-toelichting">${esc(toel).replace(/\n/g, "<br/>")}</div>` : ""}
       ${bottomrow(tel)}
     </div>`;
   },
@@ -353,7 +356,7 @@ async function fontsAlsCSS() {
 }
 async function posterCSSTekst() {
   if (cache.posterCSS) return cache.posterCSS;
-  return (cache.posterCSS = await (await fetch("poster.css?v=3")).text());
+  return (cache.posterCSS = await (await fetch("poster.css?v=4")).text());
 }
 
 async function downloadPNG() {

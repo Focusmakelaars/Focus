@@ -112,6 +112,16 @@
 }
 .t-tekoop .p-plaats { margin-top: 14px; font-size: 46px; color: var(--iris-bruin); }
 .t-tekoop .p-prijsrow { margin-top: 40px; display: flex; align-items: center; gap: 28px; }
+.t-tekoop .p-photo.p-photo--kort { height: 500px; }
+.t-tekoop.f11 .p-photo.p-photo--kort { height: 360px; }
+.t-tekoop.f916 .p-photo.p-photo--kort { height: 860px; }
+.t-tekoop .p-toelichting {
+  margin-top: 30px;
+  font-size: 33px; line-height: 1.4; color: var(--ink-soft, #4b4a45);
+  max-width: 27em;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.t-tekoop.f11 .p-toelichting { font-size: 29px; margin-top: 22px; }
 .f11 .t-tekoop .p-kicker, .t-tekoop.f11 .p-kicker { margin-top: 44px; }
 .t-tekoop.f11 .p-straat { font-size: 64px; }
 .t-tekoop.f11 .p-prijsrow { margin-top: 30px; }
