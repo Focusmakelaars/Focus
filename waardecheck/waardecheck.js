@@ -186,6 +186,16 @@ function toonAnders() {
 document.addEventListener("DOMContentLoaded", () => {
   vulGemeentes();
 
+  /* ?gemeente=Helmond (bv. via QR op de wijkmailing) → alvast voorselecteren */
+  const qs = new URLSearchParams(location.search).get("gemeente");
+  if (qs) {
+    const match = Object.keys(DATA).find(g => g.toLowerCase() === qs.toLowerCase());
+    if (match) {
+      $("#gemeenteSelect").value = match;
+      $("#gemeenteVerder").disabled = false;
+    }
+  }
+
   $("#startBtn").addEventListener("click", () => {
     $("#wizard").classList.remove("is-verborgen");
     toon("gemeente");
