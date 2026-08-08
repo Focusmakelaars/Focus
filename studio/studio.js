@@ -1403,6 +1403,9 @@ function poortInit() {
 function init() {
   poortInit();
   $("#topBeeldmerk").innerHTML = beeldmerkSVG();
+  // versienummer uit de cache-buster: klopt altijd met de echt geladen studio.js
+  const jsSrc = ($("script[src^='studio.js']") || {}).src || "";
+  $("#topVersie").textContent = "v" + ((jsSrc.match(/v=(\d+)/) || [])[1] || "?");
   $("#edLadenOog").innerHTML = beeldmerkSVG();
 
   // vestigingen
