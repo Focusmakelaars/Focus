@@ -66,6 +66,9 @@
 
 .p-photo { position: relative; overflow: hidden; background: var(--comfort-beige); }
 .p-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.p-qrchip { position: absolute; right: 26px; bottom: 26px; background: #fff; border-radius: 18px; padding: 12px 12px 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; box-shadow: 0 12px 32px -12px rgba(29,32,35,.5); }
+.p-qrchip img { width: 104px; height: 104px; display: block; }
+.p-qrchip em { font-style: normal; font-size: 14px; font-weight: 600; color: #4b4a45; letter-spacing: .03em; }
 .p-arch { border-radius: 999px 999px 34px 34px; }
 .p-rond { border-radius: 34px; }
 

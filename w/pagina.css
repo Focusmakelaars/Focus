@@ -92,6 +92,15 @@ h1 { font-size: clamp(1.6rem, 4.5vw, 2.4rem); font-weight: 700; letter-spacing: 
 .feiten td:first-child { width: 46%; }
 .feiten td:last-child { font-weight: 600; color: var(--pupil-zwart); }
 
+/* downloads */
+.docs { margin-top: 1.2rem; display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+.doc { display: flex; align-items: center; gap: .7rem; background: var(--wit); border: none; border-radius: 14px; padding: .9rem 1.1rem; cursor: pointer; text-align: left; transition: transform .15s, box-shadow .2s; }
+.doc:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -18px rgba(29,32,35,.4); }
+.doc svg { width: 26px; height: 26px; color: var(--warm-oranje); flex: none; }
+.doc span { font-weight: 700; font-size: .9rem; flex: 1; min-width: 0; }
+.doc em { font-style: normal; font-size: .74rem; color: var(--iris-bruin); white-space: nowrap; }
+@media (max-width: 640px) { .docs { grid-template-columns: 1fr; } }
+
 /* cta */
 .cta { margin-top: 3rem; background: var(--pupil-zwart); color: #fff; border-radius: 18px; padding: 2rem 1.8rem; position: relative; overflow: hidden; }
 .cta::after { content: ""; position: absolute; width: 240px; height: 240px; border-radius: 50%; border: 1.5px solid rgba(246,135,31,.3); right: -90px; top: -90px; }

@@ -7,8 +7,8 @@
 <meta name="description" content="De huisstijl-studio van Focus Makelaars: maak in een paar klikken on-brand social posts en e-mailhandtekeningen.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
-<link rel="stylesheet" href="poster.css?v=5">
-<link rel="stylesheet" href="studio.css?v=14">
+<link rel="stylesheet" href="poster.css?v=6">
+<link rel="stylesheet" href="studio.css?v=15">
 <link rel="stylesheet" href="brochure-paginas.css?v=6">
 </head>
 <body>
@@ -85,10 +85,19 @@
         <button class="knop knop--tweede" id="wpKijkers">Kijkerslijst</button>
       </div>
       <div class="hub__wp-kijkers is-verborgen" id="wpLijst"></div>
+      <div class="hub__wp-docs">
+        <div class="hub__wp-docskop">
+          <strong>Documenten op de pagina</strong>
+          <label class="knop knop--tweede">+ Upload
+            <input type="file" id="wpDocUpload" accept=".pdf,image/*" multiple hidden>
+          </label>
+        </div>
+        <div id="wpDocLijst" class="hub__wp-doclijst"></div>
+      </div>
     </div>
 
     <div class="hub__overig">
-      <span>Niet woning-gebonden:</span>
+      <span>Niet woning-gebonden</span>
       <button class="hub__link" data-doel="social-algemeen">Algemene social posts (team, marktupdate, gezocht)</button>
       <button class="hub__link" data-doel="handtekening">E-mailhandtekeningen</button>
     </div>
@@ -344,6 +353,6 @@
 
 <canvas id="werkCanvas" hidden></canvas>
 <script src="data.js?v=1"></script>
-<script src="studio.js?v=30"></script>
+<script src="studio.js?v=31"></script>
 </body>
 </html>

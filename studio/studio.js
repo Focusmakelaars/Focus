@@ -63,9 +63,10 @@ function placeholderInhoud(donker) {
     <span class="serif">upload of sleep &#8217;m in het linkerpaneel</span>
   </div>`;
 }
-function fotoBlok(extraClass) {
-  if (fotoSrc()) return `<div class="p-photo ${extraClass}"><img src="${fotoSrc()}" alt=""></div>`;
-  return `<div class="p-photo ${extraClass}">${placeholderInhoud(false)}</div>`;
+function fotoBlok(extraClass, qr) {
+  const chip = qr ? `<span class="p-qrchip"><img src="${qr}" alt=""><em>scan voor alles</em></span>` : "";
+  if (fotoSrc()) return `<div class="p-photo ${extraClass}"><img src="${fotoSrc()}" alt="">${chip}</div>`;
+  return `<div class="p-photo ${extraClass}">${placeholderInhoud(false)}${chip}</div>`;
 }
 
 /* ---------- warme gloed (fotorecept uit het brandbook) ---------- */
@@ -185,7 +186,7 @@ const RENDER = {
     const toel = (v.toelichting || "").trim();
     return `<div class="p-pad">
       ${brandrow("var(--warm-oranje)")}
-      ${fotoBlok("p-rond" + (toel ? " p-photo--kort" : ""))}
+      ${fotoBlok("p-rond" + (toel ? " p-photo--kort" : ""), state.woningQR)}
       <span class="p-kicker">${esc(v.kicker)}</span>
       <div class="p-straat" data-fit="46">${esc(v.straat)}</div>
       <div class="p-plaats serif">${esc(v.plaats)}</div>
@@ -216,7 +217,7 @@ const RENDER = {
       <div class="p-tijd">${esc(v.tijd)}</div>
       <div class="p-waar serif">${esc(v.waar)}</div>
       <span class="p-pill">Loop vrijblijvend binnen</span>
-      ${fotoBlok("")}
+      ${fotoBlok("", state.woningQR)}
       ${bottomrow(tel)}
     </div>`;
   },
@@ -359,7 +360,7 @@ async function fontsAlsCSS() {
 }
 async function posterCSSTekst() {
   if (cache.posterCSS) return cache.posterCSS;
-  return (cache.posterCSS = await (await fetch("poster.css?v=5")).text());
+  return (cache.posterCSS = await (await fetch("poster.css?v=6")).text());
 }
 
 async function downloadPNG() {
@@ -519,6 +520,7 @@ async function rwInit() {
 
 function rwToepassen() {
   if (!rwActief) return;
+  state.woningQR = rwActief.qr || null; // QR naar de woningpagina (te koop + open huis)
   Object.assign(state.velden, rwActief[state.template] || {});
   if (rwActief.foto && SJABLONEN[state.template].foto) {
     state.fotoOrigineel = rwActief.foto;
@@ -537,6 +539,7 @@ function resetPoster() {
   state.fotoOrigineel = null;
   state.fotoGloed = null;
   state.fotoIsUpload = false;
+  state.woningQR = null;
   const drop = $("#dropzone");
   drop.classList.remove("heeft-foto");
   drop.style.backgroundImage = "";
@@ -563,6 +566,12 @@ async function rwKies(o) {
   };
   rwActief = actief;
   $("#rwHint").textContent = "Woning laden…";
+  try { // QR naar de woningpagina
+    const qb = await (await rwFetch("/qr?data=" + encodeURIComponent(wpUrlVan(o)))).blob();
+    const qdu = await naarDataURL(qb);
+    if (mijn !== rwKiesNr) return;
+    actief.qr = qdu;
+  } catch { /* QR niet beschikbaar */ }
   if (o.hoofdfoto) {
     try {
       const blob = await (await rwFetch("/foto?url=" + encodeURIComponent(o.hoofdfoto))).blob();
@@ -1003,6 +1012,7 @@ function edPaginaHTML(p, nr) {
           <div class="kaart">
             <div class="t"><h3>Plan een <span class="serif">bezichtiging.</span></h3>
               <p>Bel <strong>${esc(vest.telefoon)}</strong> of mail <strong>${esc(vest.mail)}</strong><br>Focus Makelaars ${esc(vestNaam)} &middot; ${esc(vest.adres)}</p></div>
+            ${ed.woningQR ? `<div class="qr"><img src="${ed.woningQR}" alt="QR"><span>Deze woning online —<br>foto's &amp; documenten</span></div>` : ""}
             <div class="qr"><img src="${ed.qr}" alt="QR"><span>Scan voor de gratis<br>online waardecheck</span></div>
           </div>
           <div class="voet"><strong>Focus Makelaars ${esc(vestNaam)}</strong> &middot; ${esc(vest.adres)} &middot; ${esc(vest.telefoon)} &middot; ${esc(vest.mail)} &mdash; met oog voor jou. Aan deze brochure kunnen geen rechten worden ontleend. Maten en gegevens zijn indicatief.</div>
@@ -1172,6 +1182,10 @@ async function edKies(compactObj) {
     ed.logo = await laadLogo();
     ed.logoWit = ed.logo.replace(/currentColor/g, "#FFFFFF").replace('class="logo"', "");
     ed.qr = await brDataURL("qr-waardecheck.png");
+    try { // QR naar de woningpagina (voor de contactpagina)
+      ed.woningQR = await naarDataURL(await (await rwFetch("/qr?data=" + encodeURIComponent(wpUrlVan(compactObj)))).blob());
+    } catch { ed.woningQR = null; }
+    if (mijn !== edKiesNr) return;
     ed.brandfotos = [await brDataURL("../assets/img/stel-tuin.png"), await brDataURL("../assets/img/makelaar-gesprek.png")];
     for (let i = 0; i < mediaRuw.length; i++) {
       laad(`Foto's laden… (${i + 1}/${mediaRuw.length})`);
@@ -1504,6 +1518,9 @@ async function omZet(o) {
       mijnOm.foto = foto;
     } catch { /* foto niet beschikbaar */ }
   }
+  try { // QR naar de woningpagina (voor te koop / open huis; verkocht houdt de waardecheck-QR)
+    mijnOm.woningQR = await naarDataURL(await (await rwFetch("/qr?data=" + encodeURIComponent(wpUrlVan(o)))).blob());
+  } catch { mijnOm.woningQR = null; }
   mijnOm.logo = mijnOm.logo || await laadLogo();
   mijnOm.qr = mijnOm.qr || await brDataURL("qr-waardecheck.png");
   mijnOm.laadt = false;
@@ -1540,7 +1557,8 @@ function omHTML() {
     <div class="mkaart">
       <div class="t"><h3>Vragen? <span class="serif">Bel of mail ons.</span></h3>
         <p><strong>Focus Makelaars ${esc(vestNaam)}</strong><br>${esc(vest.telefoon)} · ${esc(vest.mail)}<br>${esc(vest.adres)}</p></div>
-      <div class="qr"><img src="${om.qr}" alt="QR"><span>Gratis online<br>waardecheck</span></div>
+      <div class="qr"><img src="${soort !== "verkocht" && om.woningQR ? om.woningQR : om.qr}" alt="QR">
+        <span>${soort !== "verkocht" && om.woningQR ? "Bekijk deze woning<br>online — scan mij" : "Gratis online<br>waardecheck"}</span></div>
     </div>
     <div class="mvoet">Focus Makelaars — met oog voor jou. Liever geen post van ons? Laat het weten via ${esc(vest.mail)}.</div>
   </div>`;
@@ -1589,6 +1607,19 @@ function wpToon(o) {
   $("#wpLijst").classList.add("is-verborgen");
   $("#wpLijst").innerHTML = "";
   $("#wpKijkers").textContent = "Kijkerslijst";
+  wpDocsLaad();
+}
+
+async function wpDocsLaad() {
+  if (!gekozenWoning) return;
+  const el = $("#wpDocLijst");
+  try {
+    const r = await (await rwFetch(`/documenten/${gekozenWoning.afdelingscode}/${gekozenWoning.objectcode}`)).json();
+    const docs = r.documenten || [];
+    el.innerHTML = docs.length
+      ? docs.map(d => `<span class="wp-doc">${esc(d.naam)}<button data-doc="${esc(d.naam)}" title="Van de pagina verwijderen">&times;</button></span>`).join("")
+      : '<span class="hint hint--licht">Nog geen documenten — upload hier de brochure-PDF, vragenlijst B, het energielabel of de kadastrale kaart.</span>';
+  } catch { el.innerHTML = ""; }
 }
 
 function wpInit() {
@@ -1622,6 +1653,34 @@ function wpInit() {
       lijst.classList.remove("is-verborgen");
       $("#wpKijkers").textContent = `Kijkerslijst (${leads.length})`;
     } catch { lijst.innerHTML = '<p class="hint hint--licht">Kijkerslijst ophalen mislukte — draait de proxy?</p>'; lijst.classList.remove("is-verborgen"); }
+  });
+  $("#wpDocUpload").addEventListener("change", async e => {
+    if (!gekozenWoning || !e.target.files.length) return;
+    $("#wpDocLijst").innerHTML = '<span class="hint hint--licht">Uploaden…</span>';
+    for (const f of e.target.files) {
+      try {
+        const d = await naarDataURL(f);
+        await rwFetch("/document", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ afdelingscode: gekozenWoning.afdelingscode, objectcode: gekozenWoning.objectcode,
+                                 naam: f.name, data: d.split(",")[1] })
+        });
+      } catch { /* volgende bestand proberen */ }
+    }
+    e.target.value = "";
+    wpDocsLaad();
+  });
+  $("#wpDocLijst").addEventListener("click", async e => {
+    const b = e.target.closest("button[data-doc]");
+    if (!b || !gekozenWoning) return;
+    if (!confirm(`"${b.dataset.doc}" van de woningpagina verwijderen?`)) return;
+    try {
+      await rwFetch("/document-verwijder", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ afdelingscode: gekozenWoning.afdelingscode, objectcode: gekozenWoning.objectcode, naam: b.dataset.doc })
+      });
+    } catch {}
+    wpDocsLaad();
   });
 }
 

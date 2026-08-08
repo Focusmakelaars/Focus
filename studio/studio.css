@@ -204,7 +204,15 @@ em{font-family:var(--font-serif);font-style:italic}
 .hub__wp-kijkers th{text-align:left;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--iris-bruin);padding:.3rem .4rem;border-bottom:1.5px solid var(--comfort-beige)}
 .hub__wp-kijkers td{padding:.4rem;border-bottom:1px solid rgba(223,209,187,.5)}
 .hub__wp-kijkers a{color:var(--warm-oranje)}
-.hub__overig{margin-top:2.4rem;display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;justify-content:center;align-items:center;font-size:.84rem;color:var(--ink-soft)}
+.hub__wp-docs{margin-top:1rem;border-top:1.5px solid var(--helder-beige);padding-top:.9rem}
+.hub__wp-docskop{display:flex;align-items:center;justify-content:space-between;gap:.8rem}
+.hub__wp-docskop strong{font-size:.85rem}
+.hub__wp-doclijst{margin-top:.6rem;display:flex;flex-wrap:wrap;gap:.45rem}
+.wp-doc{display:inline-flex;align-items:center;gap:.45rem;background:var(--helder-beige);border-radius:999px;padding:.35rem .5rem .35rem .8rem;font-size:.78rem;font-weight:600}
+.wp-doc button{width:20px;height:20px;border-radius:50%;background:var(--comfort-beige);color:var(--pupil-zwart);font-size:.85rem;line-height:1;display:flex;align-items:center;justify-content:center}
+.wp-doc button:hover{background:var(--warm-oranje);color:#fff}
+.hub__overig{margin-top:2.4rem;display:flex;flex-direction:column;gap:.5rem;align-items:center;font-size:.84rem;color:var(--ink-soft)}
+.hub__overig>span{font-size:.66rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--iris-bruin)}
 .hub__link{font-size:.84rem;font-weight:600;color:var(--warm-oranje);text-decoration:underline;text-underline-offset:3px}
 .hub__link:hover{color:var(--pupil-zwart)}
 .tegelgroep{font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--iris-bruin);margin:.85rem 0 .45rem}
@@ -266,7 +274,7 @@ em{font-family:var(--font-serif);font-style:italic}
 /* teksten-paneel */
 .ed-tekst{background:var(--helder-beige);border-radius:12px;padding:.7rem .85rem;margin-bottom:.6rem}
 .ed-tekst strong{font-size:.8rem;display:block}
-.ed-tekst p{font-size:.74rem;color:var(--ink-soft);line-height:1.45;height:14em;resize:vertical;overflow:auto;margin:.35rem 0 .5rem;white-space:pre-line;border:1px solid rgba(176,131,107,.25);border-radius:8px;padding:.45rem .55rem;background:#fff;min-height:4em}
+.ed-tekst p{font-size:.74rem;color:var(--ink-soft);line-height:1.45;height:36.5em;resize:vertical;overflow:auto;margin:.35rem 0 .5rem;white-space:pre-line;border:1px solid rgba(176,131,107,.25);border-radius:8px;padding:.45rem .55rem;background:#fff;min-height:4em}
 .ed-tekst button{font-size:.74rem;font-weight:600;color:var(--warm-oranje);text-decoration:underline;text-underline-offset:2px}
 /* fotokiezer-modal */
 .ed-modal{position:fixed;inset:0;background:rgba(29,32,35,.55);display:flex;align-items:center;justify-content:center;z-index:60;padding:1.5rem}

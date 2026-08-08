@@ -135,16 +135,39 @@ async function toonVolledig() {
   else $("#wVerhaalBlok").classList.add("is-verborgen");
   // feiten
   $("#wFeiten").innerHTML = feitenHTML();
-  // galerij (lui laden, klein formaat)
+  // downloads (brochure, vragenlijst B, energielabel, kadastrale kaart, …)
+  try {
+    const r = await (await rwFetch(`/documenten/${afd}/${code}`)).json();
+    const docs = r.documenten || [];
+    if (docs.length) {
+      $("#wDocs").innerHTML = docs.map(d =>
+        `<button class="doc" data-naam="${esc(d.naam)}">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+           <span>${esc(d.naam.replace(/\.[^.]+$/, ""))}</span>
+           <em>${(d.grootte / 1048576).toFixed(1).replace(".", ",")} MB</em>
+         </button>`).join("");
+      $("#wDocsBlok").classList.remove("is-verborgen");
+    }
+  } catch { /* documenten niet beschikbaar */ }
+  // galerij (lui laden, scherp web-formaat)
   const gal = $("#wGalerij");
   gal.innerHTML = fotoLijst.slice(0, MAX_GALERIJ).map((m, i) =>
     `<div class="foto${i % 5 === 0 ? " foto--breed" : ""}" data-i="${i}"></div>`).join("");
   for (const el of gal.querySelectorAll(".foto")) {
     try {
-      const url = await fotoURL(fotoLijst[+el.dataset.i].link, "klein");
+      const url = await fotoURL(fotoLijst[+el.dataset.i].link, "web");
       el.innerHTML = `<img src="${url}" alt="Woningfoto" loading="lazy">`;
     } catch { el.remove(); }
   }
+}
+
+async function downloadDoc(naam) {
+  const blob = await (await rwFetch(`/document/${afd}/${code}/${encodeURIComponent(naam)}`)).blob();
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = naam;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 
 async function registreer(e) {
@@ -215,7 +238,7 @@ async function init() {
   fotoLijst = (obj.media || []).filter(m => ["HOOFDFOTO", "FOTO"].includes(m.soort) && m.vrijgave)
     .sort((a, b) => (a.soort !== "HOOFDFOTO") - (b.soort !== "HOOFDFOTO") || (a.volgnummer || 99) - (b.volgnummer || 99));
   if (fotoLijst.length) {
-    try { $("#wHeroFoto").innerHTML = `<img src="${await fotoURL(fotoLijst[0].link, "klein")}" alt="${esc(straatnr)}">`; } catch {}
+    try { $("#wHeroFoto").innerHTML = `<img src="${await fotoURL(fotoLijst[0].link, "web")}" alt="${esc(straatnr)}">`; } catch {}
   }
 
   $("#wLaden").classList.add("is-verborgen");
@@ -227,6 +250,10 @@ async function init() {
   if (bekend && bekend.email) toonVolledig();
 
   $("#wForm").addEventListener("submit", registreer);
+  $("#wDocs").addEventListener("click", e => {
+    const b = e.target.closest("button[data-naam]");
+    if (b) downloadDoc(b.dataset.naam).catch(() => {});
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);
