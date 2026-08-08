@@ -101,6 +101,56 @@
 .bp--drieluik .rij .bslot { height: 70mm; border-radius: 4mm; }
 .bp--drieluik .btekst--caption { margin-top: 5mm; text-align: center; font-family: "STIX Two Text", Georgia, serif; font-style: italic; font-size: 10pt; color: #B0836B; min-height: 6mm; }
 
+/* ---------- layout: verhaal (intro + 2-koloms tekst + 2 foto's + bewonersquote) ---------- */
+.bp--verhaal { padding: 24mm 14mm 12mm; display: flex; flex-direction: column; }
+.bp--verhaal h2 { font-size: 17pt; font-weight: 700; line-height: 1.15; margin-top: 2mm; min-height: 10mm; }
+.bp--verhaal h2 .kop-b { color: #B0836B; font-weight: 500; }
+.bp--verhaal .btekst--intro { margin-top: 3.5mm; font-size: 10.5pt; line-height: 1.55; max-width: 172mm; min-height: 8mm; }
+.bp--verhaal .btekst--lopend { margin-top: 4.5mm; font-size: 9pt; line-height: 1.7; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; column-count: 2; column-gap: 7mm; }
+.bp--verhaal .btekst--lopend::first-letter { font-family: "STIX Two Text", Georgia, serif; font-style: italic; font-size: 3.1em; float: left; line-height: .8; padding: 1mm 2mm 0 0; color: #1D2023; }
+.bp--verhaal .rij { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 5mm; flex: none; }
+.bp--verhaal .rij .bslot { height: 52mm; border-radius: 3mm; }
+.bp--verhaal .bkaart { margin-top: 6mm; flex: none; background: #EAE0CD; border-radius: 4mm; padding: 5.5mm 7mm 5mm; }
+.bp--verhaal .bkaart__kop { font-size: 7.5pt; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #F15D22; }
+.bp--verhaal .btekst--bquote { margin-top: 2.5mm; font-size: 11.5pt; line-height: 1.45; color: #1D2023; min-height: 8mm; }
+.bp--verhaal .btekst--bbron { margin-top: 2mm; font-size: 8pt; color: #4b4a45; min-height: 4mm; }
+.bp--verhaal .btekst--bbron strong { font-weight: 700; }
+
+/* ---------- layout: drie dingen (3 kaarten met 01/02/03) ---------- */
+.bp--driedingen { padding: 24mm 14mm 12mm; display: flex; flex-direction: column; }
+.bp--driedingen h2 { font-size: 17pt; font-weight: 700; line-height: 1.15; margin-top: 2mm; min-height: 10mm; }
+.bp--driedingen .ding { display: grid; grid-template-columns: 1fr 76mm; background: #fff; border-radius: 4mm; overflow: hidden; height: 71mm; margin-top: 6mm; flex: none; }
+.bp--driedingen .ding--omgekeerd { grid-template-columns: 76mm 1fr; }
+.bp--driedingen .ding .bslot { height: 100%; }
+.bp--driedingen .dtekst { padding: 6mm 7mm; display: flex; flex-direction: column; min-width: 0; }
+.bp--driedingen .dnr { font-family: "STIX Two Text", Georgia, serif; font-style: italic; font-size: 13pt; color: #F15D22; }
+.bp--driedingen .ding__kop { font-size: 11pt; font-weight: 700; margin-top: 1.5mm; min-height: 5mm; }
+.bp--driedingen .ding__tekst { margin-top: 2mm; font-size: 8.6pt; line-height: 1.6; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; }
+
+/* ---------- layout: indeling (plattegrond + verdiepingskaarten) ---------- */
+.bp--indeling { padding: 24mm 14mm 12mm; display: flex; flex-direction: column; }
+.bp--indeling h2 { font-size: 17pt; font-weight: 700; line-height: 1.15; margin-top: 2mm; min-height: 10mm; }
+.bp--indeling .kols { flex: 1; display: grid; grid-template-columns: 1fr 60mm; gap: 6mm; margin-top: 5mm; min-height: 0; }
+.bp--indeling .plat { background: #fff; border-radius: 4mm; padding: 5mm 6mm 6mm; display: flex; flex-direction: column; min-height: 0; }
+.bp--indeling .plat__label { font-size: 7.5pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #F15D22; min-height: 4mm; }
+.bp--indeling .plat .bslot { flex: 1; margin-top: 3mm; border-radius: 2mm; min-height: 0; }
+.bp--indeling .rechts { display: flex; flex-direction: column; gap: 5mm; min-height: 0; }
+.bp--indeling .vkaart { background: #EAE0CD; border-radius: 4mm; padding: 4.5mm 5.5mm 5mm; flex: 1; overflow: hidden; }
+.bp--indeling .vkaart__kop { font-size: 7.5pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #F15D22; min-height: 4mm; }
+.bp--indeling .vkaart__tekst { margin-top: 2.5mm; font-size: 8.2pt; line-height: 1.65; color: #4b4a45; white-space: pre-line; }
+
+/* ---------- layout: buurt (locatiekaart + reistijd-pills + tekst) ---------- */
+.bp--buurt { padding: 24mm 14mm 12mm; display: flex; flex-direction: column; }
+.bp--buurt h2 { font-size: 17pt; font-weight: 700; line-height: 1.15; margin-top: 2mm; min-height: 10mm; }
+.bp--buurt h2 .kop-b { color: #B0836B; font-weight: 500; }
+.bp--buurt .bslot--kaart { height: 96mm; border-radius: 4mm; margin-top: 5mm; flex: none; }
+.bp--buurt .pills { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5mm 6mm; margin-top: 6mm; flex: none; }
+.bp--buurt .pill { background: #fff; border-radius: 99mm; padding: 2.6mm 5mm; display: flex; align-items: center; gap: 3mm; }
+.bp--buurt .pill__bol { width: 2.6mm; height: 2.6mm; border-radius: 50%; background: #F15D22; flex: none; }
+.bp--buurt .pill__naam { font-size: 8.6pt; font-weight: 700; flex: 1; min-width: 0; }
+.bp--buurt .pill__tijd { font-size: 7.8pt; font-weight: 700; color: #F15D22; text-align: right; }
+.bp--buurt .btekst--lopend { margin-top: 6mm; font-size: 9pt; line-height: 1.7; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; column-count: 2; column-gap: 7mm; }
+
 /* ---------- layout: doorlopende spread (tekst links + panoramafoto over 1,5 pagina) ----------
    De foto beslaat een virtueel doek van 315×297mm: 105mm op de linkerpagina + 210mm op de
    rechterpagina. Beide pagina's tonen hetzelfde beeld, alleen anders uitgesneden — in druk
@@ -133,7 +183,9 @@
 /* ---------- layout: vol (full-bleed foto + bijschrift) ---------- */
 .bp--vol .bslot { position: absolute; inset: 0; }
 .bp--vol .scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 60mm; background: linear-gradient(180deg, rgba(29,32,35,0), rgba(29,32,35,.62)); pointer-events: none; }
-.bp--vol .btekst--caption { position: absolute; left: 14mm; right: 14mm; bottom: 12mm; color: #fff; font-size: 13pt; font-weight: 600; line-height: 1.35; min-height: 8mm; }
+.bp--vol .volonder { position: absolute; left: 14mm; right: 14mm; bottom: 12mm; }
+.bp--vol .btekst--volkicker { color: #F6871F; font-size: 8pt; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; margin-bottom: 2mm; min-height: 4mm; }
+.bp--vol .btekst--caption { color: #fff; font-size: 13pt; font-weight: 600; line-height: 1.35; min-height: 8mm; }
 
 /* ---------- layout: tekst3 (tekst + 3 foto's rechts) ---------- */
 .bp--tekst3 { padding: 26mm 14mm 14mm; display: grid; grid-template-columns: 1fr 64mm; gap: 7mm; }

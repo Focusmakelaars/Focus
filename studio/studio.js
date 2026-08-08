@@ -657,6 +657,10 @@ const ED_LAYOUTS = {
   tekstfoto:     { naam: "Tekst + 2 foto's + accent" },
   sfeer:         { naam: "Quote + panorama" },
   drieluik:      { naam: "Drieluik (3 foto's)" },
+  verhaal:       { naam: "Het verhaal (tekst + bewonersquote)" },
+  driedingen:    { naam: "Drie dingen (3 kaarten)" },
+  indeling:      { naam: "Indeling (plattegrond + lijstjes)" },
+  buurt:         { naam: "De buurt (kaart + reistijden)" },
   spreadlinks:   { naam: "Spread links (tekst + doorloopfoto)" },
   spreadrechts:  { naam: "Spread rechts (vervolg foto)" },
   raster:        { naam: "Fotoraster (6 foto's)" },
@@ -831,6 +835,60 @@ function edPaginaHTML(p, nr) {
         ${edSlot(p, "f1", "bslot--groot")}
         <div class="rij">${edSlot(p, "f2")}${edSlot(p, "f3")}</div>
         ${edTekst(p, "caption", "btekst--caption", "Optioneel bijschrift…")}</div>`;
+    case "verhaal":
+      return `<div class="bp bp--verhaal">${logo}${nrBadge}
+        <span class="bkicker">Het verhaal</span>
+        <h2>${edTekst(p, "kop", "kop-a", "Klik voor de kop,", "span")} ${edTekst(p, "kops", "kop-b serif", "en het serif-deel.", "span")}</h2>
+        ${edTekst(p, "intro", "btekst--intro", "Klik voor een korte intro van 2-3 regels die de woning samenvat…")}
+        ${edTekst(p, "lopend", "btekst--lopend", "Klik en typ of plak hier het verhaal van de woning — de eerste letter wordt vanzelf een sierletter.")}
+        <div class="rij">${edSlot(p, "f1")}${edSlot(p, "f2")}</div>
+        <div class="bkaart">
+          <span class="bkaart__kop">De bewoners aan het woord</span>
+          ${edTekst(p, "quote", "btekst--bquote serif", "“Klik voor een quote van de verkopers over het huis…”")}
+          ${edTekst(p, "bron", "btekst--bbron", "— De bewoners van …")}
+        </div></div>`;
+    case "driedingen": {
+      const ding = k => {
+        const tekst = `<div class="dtekst"><span class="dnr">0${k}</span>
+          ${edTekst(p, `t${k}kop`, "ding__kop", "Klik voor een kop…", "h3")}
+          ${edTekst(p, `t${k}tekst`, "ding__tekst", "Klik voor de toelichting…")}</div>`;
+        const foto = edSlot(p, "f" + k);
+        return k === 2
+          ? `<div class="ding ding--omgekeerd">${foto}${tekst}</div>`
+          : `<div class="ding">${tekst}${foto}</div>`;
+      };
+      return `<div class="bp bp--driedingen">${logo}${nrBadge}
+        <span class="bkicker">Waar je blij van wordt</span>
+        ${edTekst(p, "kop", "", "Drie dingen die dit huis bijzonder maken.", "h2")}
+        ${ding(1)}${ding(2)}${ding(3)}</div>`;
+    }
+    case "indeling":
+      return `<div class="bp bp--indeling">${logo}${nrBadge}
+        <span class="bkicker">De indeling</span>
+        ${edTekst(p, "kop", "", "Zo loop je erdoorheen.", "h2")}
+        <div class="kols">
+          <div class="plat">
+            ${edTekst(p, "platlabel", "plat__label", "Bijv. BEGANE GROND & TUIN")}
+            ${edSlot(p, "f1", "bslot--contain")}
+          </div>
+          <div class="rechts">${[1, 2, 3].map(k =>
+            `<div class="vkaart">${edTekst(p, `v${k}kop`, "vkaart__kop", "Bijv. BEGANE GROND")}
+             ${edTekst(p, `v${k}tekst`, "vkaart__tekst", "Klik en som de ruimtes op — elke regel een punt…")}</div>`).join("")}
+          </div>
+        </div></div>`;
+    case "buurt": {
+      const kaartInhoud = (!p.fotos.f1 && ed.kaart)
+        ? `<div class="bslot bslot--kaart" data-slot="f1"><img src="${edPrintModus ? alsBlobURL(ed.kaart) : ed.kaart}" alt=""></div>`
+        : edSlot(p, "f1", "bslot--kaart");
+      const pill = k => `<div class="pill"><span class="pill__bol"></span>
+        ${edTekst(p, `b${k}n`, "pill__naam", "Plek", "span")}${edTekst(p, `b${k}t`, "pill__tijd", "± … min", "span")}</div>`;
+      return `<div class="bp bp--buurt">${logo}${nrBadge}
+        <span class="bkicker">De buurt</span>
+        <h2>${edTekst(p, "kop", "kop-a", "Klik voor de kop,", "span")} ${edTekst(p, "kops", "kop-b serif", "en het serif-deel.", "span")}</h2>
+        ${kaartInhoud}
+        <div class="pills">${[1, 2, 3, 4, 5, 6].map(pill).join("")}</div>
+        ${edTekst(p, "lopend", "btekst--lopend", "Klik en vertel over de buurt — voorzieningen, bereikbaarheid, sfeer…")}</div>`;
+    }
     case "spreadlinks": {
       const src = edFotoSrc(p.fotos.f1);
       const inhoud = src ? `<img src="${src}" alt="">`
@@ -864,7 +922,10 @@ function edPaginaHTML(p, nr) {
     case "vol":
       return `<div class="bp bp--vol">${edSlot(p, "f1")}<div class="scrim"></div>
         <div class="bp-logo bp-logo--wit">${ed.logoWit}</div>
-        ${edTekst(p, "caption", "btekst--caption", "Klik voor een bijschrift over deze foto…")}</div>`;
+        <div class="volonder">
+          ${edTekst(p, "kicker", "btekst--volkicker", "Klik voor een label — bijv. DE LIVING · CA. 70 M²")}
+          ${edTekst(p, "caption", "btekst--caption", "Klik voor een bijschrift over deze foto…")}
+        </div></div>`;
     case "tekst3":
       return `<div class="bp bp--tekst3">${logo}${nrBadge}
         <div class="links"><span class="bkicker">${esc(straatnr)}</span>
@@ -1182,14 +1243,15 @@ async function edKies(compactObj) {
 async function edPrint() {
   if (!ed) return;
   $("#brHint").textContent = "PDF-weergave openen…";
-  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=5")).text()]);
+  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=6")).text()]);
   edPrintModus = true;
   let paginasHTML;
   try { paginasHTML = ed.paginas.map((p, i) => edPaginaHTML(p, i + 1)).join(""); }
   finally { edPrintModus = false; }
   const doc = `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Brochure</title>
     <style>${fonts}\n${paginaCSS}\n@page{size:210mm 297mm;margin:0}html,body{margin:0;padding:0}.bp{page-break-after:always}
-    .bslot-leeg{display:none!important}.vervolg{display:none!important}[contenteditable]{outline:none}</style></head>
+    .bslot-leeg{display:none!important}.vervolg{display:none!important}[contenteditable]{outline:none}
+    .btekst:empty::before{content:none!important}</style></head>
     <body>${paginasHTML.replace(/ contenteditable="true"/g, "")}
     <script>addEventListener("load",()=>setTimeout(()=>print(),900))<\/script></body></html>`;
   const w = window.open(URL.createObjectURL(new Blob([doc], { type: "text/html" })), "_blank");
@@ -1220,8 +1282,17 @@ function brInit() {
 
   const layoutSel = $("#edLayout");
   layoutSel.innerHTML = Object.entries(ED_LAYOUTS).map(([k, v]) => `<option value="${k}">${v.naam}</option>`).join("");
+  // vaste koppen die bij een layout horen: voorvullen als echte tekst (hints printen niet mee)
+  const LAYOUT_STD_TEKSTEN = {
+    driedingen: { kop: "Drie dingen die dit huis bijzonder maken." },
+    indeling: { kop: "Zo loop je erdoorheen." }
+  };
   layoutSel.addEventListener("change", () => {
     if (!ed) return;
+    const p = ed.paginas[ed.actief];
+    Object.entries(LAYOUT_STD_TEKSTEN[layoutSel.value] || {}).forEach(([k, v]) => {
+      if (!p.teksten[k]) p.teksten[k] = v;
+    });
     ed.paginas[ed.actief].layout = layoutSel.value;
     // spread is een tweeluik: bij "Spread links" hoort direct een "Spread rechts"-pagina
     if (layoutSel.value === "spreadlinks") {
@@ -1481,9 +1552,10 @@ function omRender() {
 }
 
 async function omPrintDoc() {
-  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=5")).text()]);
+  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=6")).text()]);
   return `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Omwonende-mailing</title>
-    <style>${fonts}\n${css}\n@page{size:148mm 210mm;margin:0}html,body{margin:0;padding:0}[contenteditable]{outline:none}</style>
+    <style>${fonts}\n${css}\n@page{size:148mm 210mm;margin:0}html,body{margin:0;padding:0}[contenteditable]{outline:none}
+    .btekst:empty::before{content:none!important}</style>
     </head><body>${omHTML().replace(/ contenteditable="true"/g, "")}</body></html>`;
 }
 window.omPrintDoc = omPrintDoc; // voor geautomatiseerd renderen (drukbestanden)
