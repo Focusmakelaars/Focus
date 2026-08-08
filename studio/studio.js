@@ -507,7 +507,7 @@ async function rwInit() {
       opt.textContent = `${o.straat} ${o.huisnummer}, ${o.plaats}`;
       sel.appendChild(opt);
     });
-    sel.addEventListener("change", () => rwKies(rwObjecten[+sel.value]));
+    sel.addEventListener("change", () => wnKies(+sel.value)); // via de hub-flow: alle modules zien dezelfde woning
     $("#rwVeld").classList.remove("is-verborgen");
   } catch { /* proxy draait niet — sectie blijft verborgen */ }
   finally {
@@ -543,34 +543,43 @@ function resetPoster() {
   $("#dropTekst").innerHTML = "Sleep een woningfoto hierheen<br><em>of klik om te kiezen</em>";
 }
 
+let rwKiesNr = 0; // race-guard: alleen de laatst gekozen woning mag de poster vullen
+
 async function rwKies(o) {
   if (!o) return;
+  const mijn = ++rwKiesNr;
   resetPoster();
   bouwInputs(); render(); // oude woning meteen van het podium
   const adres = `${o.straat} ${o.huisnummer}`;
   const prijs = o.koopprijs
     ? `€ ${Math.round(o.koopprijs).toLocaleString("nl-NL")} ${o.koopconditie === "VRIJ_OP_NAAM" ? "v.o.n." : "k.k."}`
     : (o.huurprijs ? `€ ${Math.round(o.huurprijs).toLocaleString("nl-NL")} p.m.` : "");
-  rwActief = {
+  const actief = {
     tekoop: Object.assign({ straat: adres, plaats: o.plaats, prijs },
                           RW_STATUS_KICKER[o.status] ? { kicker: RW_STATUS_KICKER[o.status] } : {}),
     verkocht: { adres: `${adres} · ${o.plaats}` },
     openhuis: { waar: `${adres}, ${o.plaats}` },
     foto: null, fotoGloed: null
   };
+  rwActief = actief;
   $("#rwHint").textContent = "Woning laden…";
   if (o.hoofdfoto) {
     try {
       const blob = await (await rwFetch("/foto?url=" + encodeURIComponent(o.hoofdfoto))).blob();
-      rwActief.foto = await naarDataURL(blob);
+      const dataurl = await naarDataURL(blob);
+      if (mijn !== rwKiesNr) return; // intussen andere woning gekozen
+      actief.foto = dataurl;
     } catch { /* foto niet beschikbaar */ }
   }
+  if (mijn !== rwKiesNr) return;
   rwToepassen();
   bouwInputs(); render();
   $("#rwHint").textContent = "Adres, prijs en foto zijn ingevuld";
-  if (rwActief.foto) {
-    rwActief.fotoGloed = await warmeGloed(rwActief.foto);
-    if (state.fotoOrigineel === rwActief.foto) { state.fotoGloed = rwActief.fotoGloed; render(); }
+  if (actief.foto) {
+    const gloed = await warmeGloed(actief.foto);
+    if (mijn !== rwKiesNr) return;
+    actief.fotoGloed = gloed;
+    if (state.fotoOrigineel === actief.foto) { state.fotoGloed = gloed; render(); }
   }
 }
 
@@ -810,8 +819,7 @@ function edPaginaHTML(p, nr) {
           .replace(/class="kblok"/g, 'style="background:#fff;border-radius:4mm;padding:5mm 6mm 4mm"')
           .replace(/<h3>/g, '<h3 style="font-size:9.5pt;font-weight:700;color:#F15D22;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2.5mm">')
           .replace(/<table>/g, '<table style="width:100%;border-collapse:collapse;font-size:9pt">')
-          .replace(/<td>/g, '<td style="padding:1.1mm 0;color:#4b4a45;width:42%">')
-          .replace(/<td([^>]*)>(?!.*width)/g, "<td$1>")}</div></div>`;
+          .replace(/<td>/g, '<td style="padding:1.1mm 0;color:#4b4a45;width:42%">')}</div></div>`;
     case "plattegrond":
       return `<div class="bp bp--plattegrond">${logo}${nrBadge}
         <span class="bkicker">Indeling</span>
@@ -950,9 +958,18 @@ function edOpenFotoKiezer(slot) {
 }
 function edSluitFotoKiezer() { $("#edFotoModal").classList.add("is-verborgen"); edFotoSlotDoel = null; }
 
+let edKiesNr = 0;       // race-guard: alleen de laatst gekozen woning mag de editor vullen
+let edLaadCode = null;  // objectcode die nu laadt (voorkomt dubbel laden via tab-wissel)
+
 async function edKies(compactObj) {
+  const mijn = ++edKiesNr;
+  edLaadCode = compactObj.objectcode;
+  // blob-URL's van de vorige brochure opruimen (anders groeit het geheugen per woning)
+  blobURLCache.forEach(url => URL.revokeObjectURL(url));
+  blobURLCache.clear();
   const st = $("#brStatus");
   const laad = t => { st.textContent = t; $("#edLadenTekst").textContent = t; };
+  $("#brPrint").disabled = true;
   $("#edLeeg").classList.add("is-verborgen");
   $("#edCanvas").classList.add("is-verborgen");
   $("#edStrip").classList.add("is-verborgen");
@@ -961,6 +978,7 @@ async function edKies(compactObj) {
   laad(`${compactObj.straat} ${compactObj.huisnummer} laden…`);
   try {
     const obj = await (await rwFetch(`/object/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
+    if (mijn !== edKiesNr) return; // intussen andere woning gekozen
     const mediaRuw = (obj.media || []).filter(m => ["HOOFDFOTO", "FOTO", "PLATTEGROND"].includes(m.soort) && m.vrijgave)
       .sort((a, b) => (a.soort !== "HOOFDFOTO") - (b.soort !== "HOOFDFOTO") || (a.volgnummer || 99) - (b.volgnummer || 99));
     ed = { compact: compactObj, obj, media: [], paginas: [], actief: 0 };
@@ -971,15 +989,19 @@ async function edKies(compactObj) {
     for (let i = 0; i < mediaRuw.length; i++) {
       laad(`Foto's laden… (${i + 1}/${mediaRuw.length})`);
       try {
-        mediaRuw[i].dataurl = await brDataURL(`/foto?url=${encodeURIComponent(mediaRuw[i].link)}`);
+        const dataurl = await brDataURL(`/foto?url=${encodeURIComponent(mediaRuw[i].link)}`);
+        if (mijn !== edKiesNr) return;
+        mediaRuw[i].dataurl = dataurl;
         ed.media.push(mediaRuw[i]);
       } catch { /* foto overslaan */ }
     }
+    if (mijn !== edKiesNr) return;
     // lijst van zaken ophalen
     ed.lvz = []; ed.lvzOverrides = {};
     try {
       laad("Lijst van zaken ophalen…");
       const lvzData = await (await rwFetch(`/lijstvanzaken/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
+      if (mijn !== edKiesNr) return;
       ed.lvz = edLvzRijen(lvzData);
     } catch { /* geen lijst beschikbaar */ }
     // locatiekaart ophalen (OpenStreetMap via proxy)
@@ -988,6 +1010,7 @@ async function edKies(compactObj) {
       const adr = obj.adres || {}, h = adr.huisnummer || {};
       const zoek = `${adr.straat || ""} ${h.hoofdnummer || ""}, ${adr.postcode || ""} ${adr.plaats || ""}`;
       ed.kaart = await brDataURL(`/kaart?q=${encodeURIComponent(zoek)}`);
+      if (mijn !== edKiesNr) return;
     } catch { ed.kaart = null; }
     // eerder werk terugzetten of standaardopzet maken
     let bewaard = null;
@@ -1020,6 +1043,8 @@ async function edKies(compactObj) {
     ed.actief = 0;
     edRender();
   } catch (e) {
+    if (mijn !== edKiesNr) return; // een nieuwere laadactie beheert de UI al
+    ed = null; edLaadCode = null;  // schone lei, zodat opnieuw proberen werkt
     $("#edLaden").classList.add("is-verborgen");
     $("#edLeeg").classList.remove("is-verborgen");
     st.textContent = "Laden mislukte: " + e.message;
@@ -1191,7 +1216,8 @@ function toonTab(naam) {
   if (naam === "social") schaalPodium();
   // de op de hub gekozen woning werkt overal door, ook wie via de tabbalk navigeert
   if (gekozenWoning) {
-    if (naam === "brochure" && (!ed || ed.compact.objectcode !== gekozenWoning.objectcode)) {
+    if (naam === "brochure" && edLaadCode !== gekozenWoning.objectcode &&
+        (!ed || ed.compact.objectcode !== gekozenWoning.objectcode)) {
       const brSel = $("#brSelect");
       if (brSel && !brSel.disabled) brSel.value = rwObjecten.indexOf(gekozenWoning);
       edKies(gekozenWoning);
@@ -1222,16 +1248,25 @@ const OM_STANDAARD = {
   }
 };
 
+let omZetNr = 0; // race-guard: alleen de laatst gekozen woning mag de mailing vullen
+
 async function omZet(o) {
-  const logo = om.logo, qr = om.qr;
-  om = { o, foto: null, laadt: true, logo, qr, teksten: om.o && om.o.objectcode === o.objectcode ? om.teksten : {} };
+  const mijn = ++omZetNr;
+  om = { o, foto: null, laadt: true, logo: om.logo, qr: om.qr,
+         teksten: om.o && om.o.objectcode === o.objectcode ? om.teksten : {} };
+  const mijnOm = om;
   $("#omStatus").textContent = `${o.straat} ${o.huisnummer}, ${o.plaats}`;
   if (o.hoofdfoto) {
-    try { om.foto = await brDataURL(`/foto?url=${encodeURIComponent(o.hoofdfoto)}`); } catch {}
+    try {
+      const foto = await brDataURL(`/foto?url=${encodeURIComponent(o.hoofdfoto)}`);
+      if (mijn !== omZetNr) return; // intussen andere woning gekozen
+      mijnOm.foto = foto;
+    } catch { /* foto niet beschikbaar */ }
   }
-  om.logo = om.logo || await laadLogo();
-  om.qr = om.qr || await brDataURL("qr-waardecheck.png");
-  om.laadt = false;
+  mijnOm.logo = mijnOm.logo || await laadLogo();
+  mijnOm.qr = mijnOm.qr || await brDataURL("qr-waardecheck.png");
+  mijnOm.laadt = false;
+  if (mijn !== omZetNr) return;
   $("#omPrint").disabled = false;
   $("#omLeeg").classList.add("is-verborgen");
   $("#omCanvas").classList.remove("is-verborgen");
