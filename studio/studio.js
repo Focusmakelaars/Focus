@@ -951,22 +951,29 @@ function edPaginaHTML(p, nr) {
 }
 
 function edStandaardPaginas(obj) {
-  /* Vaste 16-pagina-opzet (wens Robbie, 08-08): cover · 2 foto's+tekst · magazine ·
-     tekst boven+grote foto · tekst+2 foto's+accent · quote+panorama · drieluik ·
-     kenmerken · 3× plattegrond · kadastraal+locatie · 2× lijst van zaken ·
-     Over Focus · achterkant. Alle fotovakken liggend. */
+  /* Vaste 16-pagina-opzet (wens Robbie, 08-08): cover · doorloop-spread (p2-3, met
+     welkom + eerste deel aanbiedingstekst) · tekst boven+grote foto (vervolg tekst) ·
+     tekst+2 foto's+accent · quote+panorama · drieluik · kenmerken · 3× plattegrond ·
+     kadastraal+locatie · 2× lijst van zaken · Over Focus · achterkant.
+     Alle fotovakken liggend. */
   const teksten = obj.teksten || {};
   const tekst = teksten.a4Tekst || teksten.aanbiedingstekst || "";
+  // de spread-tekstkolom is smal: eerste alinea's daar, de rest loopt door op pagina 4
+  let deel1 = "", deel2 = "";
+  tekst.split(/\n\s*\n/).forEach(a => {
+    if (deel1.length < 1100 && !deel2) deel1 += (deel1 ? "\n\n" : "") + a;
+    else deel2 += (deel2 ? "\n\n" : "") + a;
+  });
   const media = ed.media;
   const foto = i => (media[i] ? { bron: "media", i } : undefined);
   const paginas = [
     { layout: "cover", fotos: { f1: foto(0) }, teksten: {} },                                                    // 1
-    { layout: "fotos2boven", fotos: { f1: foto(1), f2: foto(2) }, teksten: { kop: "Welkom binnen.", lopend: tekst } }, // 2
-    { layout: "magazine", fotos: { f1: foto(3) }, teksten: { kop: "", lopend: "" } },                            // 3
-    { layout: "tekstbovenfoto", fotos: { f1: foto(4) }, teksten: { kop: "", lopend: "" } },                      // 4
-    { layout: "tekstfoto", fotos: { f1: foto(5), f2: foto(6) }, teksten: { kop: "", lopend: "", accent: "" } },  // 5
-    { layout: "sfeer", fotos: { f1: foto(7), f2: foto(8), f3: foto(9) }, teksten: { quote: "" } },               // 6
-    { layout: "drieluik", fotos: { f1: foto(10), f2: foto(11), f3: foto(12) }, teksten: { caption: "" } },       // 7
+    { layout: "spreadlinks", fotos: { f1: foto(1) }, teksten: { kop: "Welkom binnen.", lopend: deel1 } },        // 2
+    { layout: "spreadrechts", fotos: {}, teksten: {} },                                                          // 3
+    { layout: "tekstbovenfoto", fotos: { f1: foto(2) }, teksten: { kop: "", lopend: deel2 } },                   // 4
+    { layout: "tekstfoto", fotos: { f1: foto(3), f2: foto(4) }, teksten: { kop: "", lopend: "", accent: "" } },  // 5
+    { layout: "sfeer", fotos: { f1: foto(5), f2: foto(6), f3: foto(7) }, teksten: { quote: "" } },               // 6
+    { layout: "drieluik", fotos: { f1: foto(8), f2: foto(9), f3: foto(10) }, teksten: { caption: "" } },         // 7
     { layout: "kenmerken", fotos: {}, teksten: {} }                                                              // 8
   ];
   // p9-11: 3 plattegrond-pagina's — eerst de echte plattegronden uit Realworks, rest leeg
@@ -1000,7 +1007,7 @@ function edRenderStrip() {
 /* ---------- blader-weergave: 1 pagina of spread (2 naast elkaar) ----------
    Pagina 1 (cover) staat altijd alleen; daarna spreads 2-3, 4-5, enz. —
    precies zoals de brochure straks gedrukt en opengeslagen wordt. */
-let edWeergave = +(() => { try { return localStorage.getItem("fs-ed-weergave"); } catch { return 1; } })() || 1;
+let edWeergave = +(() => { try { return localStorage.getItem("fs-ed-weergave2"); } catch { return 2; } })() || 2; // spread is de standaard
 
 function edSpreadVan(i) {
   if (i === 0) return [0];
@@ -1146,7 +1153,7 @@ async function edKies(compactObj) {
       st.textContent = `${ed.media.length} foto's geladen — bouw je brochure`;
     }
     // teksten-paneel
-    const namen = { aanbiedingstekst: "Aanbiedingstekst", a4Tekst: "A4-tekst", flyertekst: "Flyertekst", eigenSiteTekst: "Eigen-site-tekst", aanbiedingstekstEngels: "Aanbiedingstekst (EN)" };
+    const namen = { aanbiedingstekst: "Aanbiedingstekst", a4Tekst: "A4-tekst", flyertekst: "Flyertekst", aanbiedingstekstEngels: "Aanbiedingstekst (EN)" };
     const tk = obj.teksten || {};
     $("#edTeksten").innerHTML = Object.entries(namen)
       .filter(([k]) => tk[k])
@@ -1347,16 +1354,16 @@ function brInit() {
   $("#brPrint").addEventListener("click", edPrint);
 
   // blader-weergave: 1 pagina of spread
-  const zetWeergave = n => {
+  const zetWeergave = (n, bewaar = true) => {
     edWeergave = n;
-    try { localStorage.setItem("fs-ed-weergave", n); } catch {}
+    if (bewaar) { try { localStorage.setItem("fs-ed-weergave2", n); } catch {} } // alleen bewuste keuze onthouden
     $("#edWeergave1").classList.toggle("is-actief", n === 1);
     $("#edWeergave2").classList.toggle("is-actief", n === 2);
     if (ed) edRenderCanvas();
   };
   $("#edWeergave1").addEventListener("click", () => zetWeergave(1));
   $("#edWeergave2").addEventListener("click", () => zetWeergave(2));
-  zetWeergave(edWeergave === 2 ? 2 : 1);
+  zetWeergave(edWeergave === 1 ? 1 : 2, false);
 
   $("#edBladerL").addEventListener("click", () => edBlader(-1));
   $("#edBladerR").addEventListener("click", () => edBlader(1));

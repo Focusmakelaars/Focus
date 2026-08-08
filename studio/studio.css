@@ -255,7 +255,7 @@ em{font-family:var(--font-serif);font-style:italic}
 /* teksten-paneel */
 .ed-tekst{background:var(--helder-beige);border-radius:12px;padding:.7rem .85rem;margin-bottom:.6rem}
 .ed-tekst strong{font-size:.8rem;display:block}
-.ed-tekst p{font-size:.74rem;color:var(--ink-soft);line-height:1.45;max-height:5.4em;overflow:auto;margin:.35rem 0 .5rem;white-space:pre-line}
+.ed-tekst p{font-size:.74rem;color:var(--ink-soft);line-height:1.45;height:14em;resize:vertical;overflow:auto;margin:.35rem 0 .5rem;white-space:pre-line;border:1px solid rgba(176,131,107,.25);border-radius:8px;padding:.45rem .55rem;background:#fff;min-height:4em}
 .ed-tekst button{font-size:.74rem;font-weight:600;color:var(--warm-oranje);text-decoration:underline;text-underline-offset:2px}
 /* fotokiezer-modal */
 .ed-modal{position:fixed;inset:0;background:rgba(29,32,35,.55);display:flex;align-items:center;justify-content:center;z-index:60;padding:1.5rem}
