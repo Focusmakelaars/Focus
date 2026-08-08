@@ -531,8 +531,22 @@ function rwToepassen() {
   }
 }
 
+function resetPoster() {
+  // verse standaardtemplate: geen invullingen of foto van de vorige woning meenemen
+  state.velden = {};
+  state.fotoOrigineel = null;
+  state.fotoGloed = null;
+  state.fotoIsUpload = false;
+  const drop = $("#dropzone");
+  drop.classList.remove("heeft-foto");
+  drop.style.backgroundImage = "";
+  $("#dropTekst").innerHTML = "Sleep een woningfoto hierheen<br><em>of klik om te kiezen</em>";
+}
+
 async function rwKies(o) {
   if (!o) return;
+  resetPoster();
+  bouwInputs(); render(); // oude woning meteen van het podium
   const adres = `${o.straat} ${o.huisnummer}`;
   const prijs = o.koopprijs
     ? `€ ${Math.round(o.koopprijs).toLocaleString("nl-NL")} ${o.koopconditie === "VRIJ_OP_NAAM" ? "v.o.n." : "k.k."}`
@@ -690,11 +704,25 @@ function edBewaar() {
   } catch { $("#brHint").textContent = "Let op: opslag vol — uploads worden niet bewaard"; }
 }
 
+/* Printmodus: foto's als blob-URL i.p.v. base64 in de HTML-string — een brochure
+   met 40-80 foto's werd anders honderden MB's groot en bevroor de browser (collega, 08-08). */
+let edPrintModus = false;
+const blobURLCache = new Map();
+function alsBlobURL(dataurl) {
+  if (blobURLCache.has(dataurl)) return blobURLCache.get(dataurl);
+  const [kop, b64] = dataurl.split(",");
+  const mime = (kop.match(/^data:([^;]+)/) || [])[1] || "image/jpeg";
+  const bin = atob(b64), arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([arr], { type: mime }));
+  blobURLCache.set(dataurl, url);
+  return url;
+}
+
 function edFotoSrc(ref) {
   if (!ref) return null;
-  if (ref.bron === "upload") return ref.dataurl;
-  const m = ed.media[ref.i];
-  return m ? m.dataurl : null;
+  const src = ref.bron === "upload" ? ref.dataurl : (ed.media[ref.i] ? ed.media[ref.i].dataurl : null);
+  return (edPrintModus && src && src.startsWith("data:")) ? alsBlobURL(src) : src;
 }
 
 function edSlot(p, slot, extraClass) {
@@ -964,7 +992,9 @@ async function edKies(compactObj) {
     // eerder werk terugzetten of standaardopzet maken
     let bewaard = null;
     try { bewaard = JSON.parse(localStorage.getItem(`focus-brochure:${compactObj.afdelingscode}/${compactObj.objectcode}`)); } catch {}
-    if (bewaard && bewaard.paginas && bewaard.paginas.length) {
+    // nooit stilzwijgend oud werk terugzetten: altijd vragen (verse standaardopzet is de norm)
+    if (bewaard && bewaard.paginas && bewaard.paginas.length &&
+        confirm("Op dit apparaat staat eerder werk aan deze brochure.\n\nOK = verdergaan met dat werk\nAnnuleren = vers beginnen met de standaardopzet")) {
       ed.paginas = bewaard.paginas;
       ed.lvzOverrides = bewaard.lvzOverrides || {};
       if (bewaard.vestiging && FOCUS.vestigingen[bewaard.vestiging]) $("#brVestiging").value = bewaard.vestiging;
@@ -1000,16 +1030,19 @@ async function edPrint() {
   if (!ed) return;
   $("#brHint").textContent = "PDF-weergave openen…";
   const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=3")).text()]);
-  const paginasHTML = ed.paginas.map((p, i) => edPaginaHTML(p, i + 1)).join("");
+  edPrintModus = true;
+  let paginasHTML;
+  try { paginasHTML = ed.paginas.map((p, i) => edPaginaHTML(p, i + 1)).join(""); }
+  finally { edPrintModus = false; }
   const doc = `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Brochure</title>
     <style>${fonts}\n${paginaCSS}\n@page{size:210mm 297mm;margin:0}html,body{margin:0;padding:0}.bp{page-break-after:always}
-    .bslot-leeg{display:none!important}[contenteditable]{outline:none}</style></head><body>${paginasHTML}</body></html>`;
-  const w = window.open("", "_blank");
-  w.document.write(doc);
-  w.document.close();
-  w.document.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
-  setTimeout(() => w.print(), 1100);
-  $("#brHint").textContent = "Kies 'Opslaan als PDF' in het printvenster";
+    .bslot-leeg{display:none!important}[contenteditable]{outline:none}</style></head>
+    <body>${paginasHTML.replace(/ contenteditable="true"/g, "")}
+    <script>addEventListener("load",()=>setTimeout(()=>print(),900))<\/script></body></html>`;
+  const w = window.open(URL.createObjectURL(new Blob([doc], { type: "text/html" })), "_blank");
+  $("#brHint").textContent = w
+    ? "Kies 'Opslaan als PDF' in het printvenster"
+    : "Pop-up geblokkeerd — sta pop-ups toe voor deze site en probeer opnieuw";
 }
 
 function brInit() {
@@ -1156,6 +1189,16 @@ function toonTab(naam) {
   $$(".tab").forEach(x => x.classList.toggle("is-active", x.dataset.tab === naam));
   $$("main[id^='tab-']").forEach(m => m.classList.toggle("is-verborgen", m.id !== "tab-" + naam));
   if (naam === "social") schaalPodium();
+  // de op de hub gekozen woning werkt overal door, ook wie via de tabbalk navigeert
+  if (gekozenWoning) {
+    if (naam === "brochure" && (!ed || ed.compact.objectcode !== gekozenWoning.objectcode)) {
+      const brSel = $("#brSelect");
+      if (brSel && !brSel.disabled) brSel.value = rwObjecten.indexOf(gekozenWoning);
+      edKies(gekozenWoning);
+    }
+    if (naam === "mailing" && !om.laadt && (!om.o || om.o.objectcode !== gekozenWoning.objectcode ||
+        (!om.foto && gekozenWoning.hoofdfoto))) omZet(gekozenWoning);
+  }
 }
 
 const OM_STANDAARD = {
@@ -1180,13 +1223,15 @@ const OM_STANDAARD = {
 };
 
 async function omZet(o) {
-  om = { o, foto: null, teksten: om.o && om.o.objectcode === o.objectcode ? om.teksten : {} };
+  const logo = om.logo, qr = om.qr;
+  om = { o, foto: null, laadt: true, logo, qr, teksten: om.o && om.o.objectcode === o.objectcode ? om.teksten : {} };
   $("#omStatus").textContent = `${o.straat} ${o.huisnummer}, ${o.plaats}`;
   if (o.hoofdfoto) {
     try { om.foto = await brDataURL(`/foto?url=${encodeURIComponent(o.hoofdfoto)}`); } catch {}
   }
   om.logo = om.logo || await laadLogo();
   om.qr = om.qr || await brDataURL("qr-waardecheck.png");
+  om.laadt = false;
   $("#omPrint").disabled = false;
   $("#omLeeg").classList.add("is-verborgen");
   $("#omCanvas").classList.remove("is-verborgen");
@@ -1241,10 +1286,8 @@ window.omPrintDoc = omPrintDoc; // voor geautomatiseerd renderen (drukbestanden)
 async function omPrint() {
   if (!om.o) return;
   const doc = await omPrintDoc();
-  const w = window.open("", "_blank");
-  w.document.write(doc);
-  w.document.close();
-  setTimeout(() => w.print(), 1000);
+  const w = window.open(URL.createObjectURL(new Blob([doc], { type: "text/html" })), "_blank");
+  if (w) setTimeout(() => w.print(), 1000);
 }
 
 function wnKies(i) {
@@ -1267,9 +1310,9 @@ function wnInit() {
     .sort((a, b) => String(b.o.invoerdatum || b.o.gewijzigd || "").localeCompare(String(a.o.invoerdatum || a.o.gewijzigd || "")));
 
   const toonResultaten = () => {
-    const q = zoek.value.trim().toLowerCase();
+    const q = zoek.value.trim().toLowerCase().replace(/,/g, "").replace(/\s+/g, " ");
     const treffers = gesorteerd().filter(({ o }) =>
-      !q || `${o.straat} ${o.huisnummer} ${o.plaats} ${o.postcode || ""}`.toLowerCase().includes(q)
+      !q || `${o.straat} ${o.huisnummer} ${o.plaats} ${o.postcode || ""}`.toLowerCase().replace(/\s+/g, " ").includes(q)
     ).slice(0, 12);
     lijst.innerHTML = treffers.length
       ? treffers.map(({ o, i }) =>
@@ -1306,16 +1349,7 @@ function wnInit() {
   $("#wnActies").addEventListener("click", e => {
     const b = e.target.closest(".hub__kaart");
     if (!b || b.disabled || !gekozenWoning) return;
-    const doel = b.dataset.doel;
-    if (doel === "brochure") {
-      const i = rwObjecten.indexOf(gekozenWoning);
-      const brSel = $("#brSelect");
-      if (!ed || ed.compact.objectcode !== gekozenWoning.objectcode) {
-        if (brSel && !brSel.disabled) brSel.value = i;
-        edKies(gekozenWoning);
-      }
-    }
-    toonTab(doel);
+    toonTab(b.dataset.doel); // toonTab laadt brochure/mailing zelf voor de gekozen woning
   });
   $$(".hub__link").forEach(b => b.addEventListener("click", () => {
     toonTab(b.dataset.doel === "social-algemeen" ? "social" : b.dataset.doel);
@@ -1381,8 +1415,7 @@ function init() {
     const b = e.target.closest("button"); if (!b) return;
     $$("#templateKeuze button").forEach(x => x.classList.toggle("is-active", x === b));
     state.template = b.dataset.t;
-    state.velden = {};
-    state.fotoIsUpload = false;
+    resetPoster();
     rwToepassen();
     bouwInputs(); render();
   });
