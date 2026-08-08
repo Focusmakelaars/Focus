@@ -8,8 +8,8 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
 <link rel="stylesheet" href="poster.css?v=5">
-<link rel="stylesheet" href="studio.css?v=11">
-<link rel="stylesheet" href="brochure-paginas.css?v=4">
+<link rel="stylesheet" href="studio.css?v=12">
+<link rel="stylesheet" href="brochure-paginas.css?v=5">
 </head>
 <body>
 
@@ -190,7 +190,12 @@
         <label>Pagina-layout</label>
         <select id="edLayout" class="select select--klein"></select>
         <button class="ed-knopje ed-knopje--breed" id="edToevoeg" title="Nieuwe pagina na deze pagina">+ Pagina</button>
+        <span class="ed-weergave">
+          <button class="ed-knopje" id="edWeergave1" title="Eén pagina">1</button>
+          <button class="ed-knopje" id="edWeergave2" title="Spread — twee pagina's naast elkaar, zoals gedrukt">2</button>
+        </span>
         <span class="ed-toolbar__rek"></span>
+        <span class="ed-aantal ed-aantal--blad" id="edBlad"></span>
         <span class="ed-aantal" id="edAantal"></span>
         <button class="ed-knopje" id="edOmhoog" title="Pagina naar voren">&larr;</button>
         <button class="ed-knopje" id="edOmlaag" title="Pagina naar achteren">&rarr;</button>
@@ -198,6 +203,8 @@
         <button class="ed-knopje ed-knopje--breed" id="edReset" title="Bewaard werk wissen en opnieuw beginnen">Begin opnieuw</button>
       </div>
       <div class="ed-canvas">
+        <button class="ed-blader ed-blader--l is-verborgen" id="edBladerL" title="Vorige (pijltje links)" aria-label="Vorige pagina">&#8249;</button>
+        <button class="ed-blader ed-blader--r is-verborgen" id="edBladerR" title="Volgende (pijltje rechts)" aria-label="Volgende pagina">&#8250;</button>
         <div id="edLeeg" class="br-leeg">
           <p><strong>Nog geen woning gekozen.</strong><br>Kies een woning op de Woning-tab en bouw hier je brochure op — pagina voor pagina, precies zoals jij 'm wilt.</p>
         </div>
@@ -322,6 +329,6 @@
 
 <canvas id="werkCanvas" hidden></canvas>
 <script src="data.js?v=1"></script>
-<script src="studio.js?v=25"></script>
+<script src="studio.js?v=26"></script>
 </body>
 </html>

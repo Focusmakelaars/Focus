@@ -54,7 +54,68 @@
 .bp--cover .kern span { display: block; font-size: 6pt; color: #4b4a45; margin-top: .7mm; }
 .bp--cover .bp-merkrow { position: absolute; top: 197mm; right: 14mm; font-size: 8pt; font-weight: 600; color: #B0836B; }
 
-/* ---------- layout: fototekst (grote foto rechts + tekstkolom) ---------- */
+/* ---------- layout: 2 foto's boven + tekst onder ---------- */
+.bp--fotos2boven { padding: 26mm 14mm 14mm; display: flex; flex-direction: column; }
+.bp--fotos2boven .rij { display: grid; grid-template-columns: 1fr 1fr; gap: 7mm; flex: none; }
+.bp--fotos2boven .rij .bslot { height: 64mm; border-radius: 4mm; }
+.bp--fotos2boven .bkicker { margin-top: 7mm; }
+.bp--fotos2boven h2 { font-size: 15.5pt; font-weight: 700; line-height: 1.15; margin-top: 2.5mm; min-height: 9mm; }
+.bp--fotos2boven .btekst--lopend { margin-top: 4mm; font-size: 9.2pt; line-height: 1.7; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; column-count: 2; column-gap: 7mm; }
+
+/* ---------- layout: magazine (full-bleed foto boven + 2-koloms tekst) ---------- */
+.bp--magazine .held { position: absolute; inset: 0 0 auto 0; height: 118mm; }
+.bp--magazine .held .bslot { position: absolute; inset: 0; }
+.bp--magazine .held::after { content: ""; position: absolute; inset: 0 0 auto 0; height: 26mm; background: linear-gradient(180deg, rgba(29,32,35,.35), rgba(29,32,35,0)); pointer-events: none; }
+.bp--magazine .onder { position: absolute; top: 126mm; left: 14mm; right: 14mm; bottom: 14mm; display: flex; flex-direction: column; }
+.bp--magazine h2 { font-size: 17pt; font-weight: 700; line-height: 1.15; margin-top: 2.5mm; min-height: 10mm; }
+.bp--magazine .btekst--lopend { margin-top: 4mm; font-size: 9.2pt; line-height: 1.7; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; column-count: 2; column-gap: 7mm; }
+
+/* ---------- layout: tekst boven + grote liggende foto onder ---------- */
+.bp--tekstbovenfoto { padding: 26mm 14mm 14mm; display: flex; flex-direction: column; }
+.bp--tekstbovenfoto h2 { font-size: 15.5pt; font-weight: 700; line-height: 1.15; margin-top: 2.5mm; min-height: 9mm; }
+.bp--tekstbovenfoto .btekst--lopend { margin-top: 4mm; font-size: 9.2pt; line-height: 1.7; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; column-count: 2; column-gap: 7mm; }
+.bp--tekstbovenfoto .bslot--onder { height: 112mm; border-radius: 4mm; margin-top: 6mm; flex: none; }
+
+/* ---------- layout: tekst links + 2 liggende foto's + accent rechts ---------- */
+.bp--tekstfoto { padding: 26mm 14mm 14mm; display: grid; grid-template-columns: 1fr 89mm; gap: 7mm; }
+.bp--tekstfoto .links { display: flex; flex-direction: column; min-width: 0; }
+.bp--tekstfoto h2 { font-size: 15.5pt; font-weight: 700; line-height: 1.15; margin-top: 2.5mm; min-height: 9mm; }
+.bp--tekstfoto .btekst--lopend { margin-top: 4mm; font-size: 9.2pt; line-height: 1.7; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; }
+.bp--tekstfoto .rechts { display: flex; flex-direction: column; gap: 6mm; }
+.bp--tekstfoto .rechts .bslot { height: 82mm; border-radius: 4mm; flex: none; }
+.bp--tekstfoto .accent { flex: 1; background: #F15D22; color: #fff; border-radius: 4mm; padding: 6mm; display: flex; align-items: center; }
+.bp--tekstfoto .btekst--accent { font-family: "STIX Two Text", Georgia, serif; font-style: italic; font-size: 12.5pt; line-height: 1.45; width: 100%; }
+.bp--tekstfoto .btekst--accent:empty::before { color: rgba(255,255,255,.75); }
+
+/* ---------- layout: sfeer (quote + panorama + 2 foto's) ---------- */
+.bp--sfeer { padding: 26mm 14mm 14mm; display: flex; flex-direction: column; }
+.bp--sfeer .btekst--quote { font-size: 19pt; line-height: 1.35; color: #1D2023; margin-top: 3mm; flex: 1; display: flex; align-items: center; min-height: 24mm; max-width: 165mm; }
+.bp--sfeer .bslot--panorama { height: 90mm; border-radius: 4mm; flex: none; margin-top: 5mm; }
+.bp--sfeer .rij { display: grid; grid-template-columns: 1fr 1fr; gap: 7mm; margin-top: 7mm; flex: none; }
+.bp--sfeer .rij .bslot { height: 62mm; border-radius: 4mm; }
+
+/* ---------- layout: drieluik (1 grote + 2 liggende foto's + bijschrift) ---------- */
+.bp--drieluik { padding: 26mm 14mm 14mm; display: flex; flex-direction: column; }
+.bp--drieluik .bslot--groot { height: 128mm; border-radius: 4mm; flex: none; margin-top: 2.5mm; }
+.bp--drieluik .rij { display: grid; grid-template-columns: 1fr 1fr; gap: 7mm; margin-top: 7mm; flex: none; }
+.bp--drieluik .rij .bslot { height: 70mm; border-radius: 4mm; }
+.bp--drieluik .btekst--caption { margin-top: 5mm; text-align: center; font-family: "STIX Two Text", Georgia, serif; font-style: italic; font-size: 10pt; color: #B0836B; min-height: 6mm; }
+
+/* ---------- layout: doorlopende spread (tekst links + panoramafoto over 1,5 pagina) ----------
+   De foto beslaat een virtueel doek van 315×297mm: 105mm op de linkerpagina + 210mm op de
+   rechterpagina. Beide pagina's tonen hetzelfde beeld, alleen anders uitgesneden — in druk
+   sluiten ze naadloos op elkaar aan. */
+.bp--spreadlinks { padding: 26mm 0 14mm 14mm; }
+.bp--spreadlinks .tekst { width: 84mm; height: 100%; display: flex; flex-direction: column; }
+.bp--spreadlinks h2 { font-size: 15.5pt; font-weight: 700; line-height: 1.15; margin-top: 2.5mm; min-height: 9mm; }
+.bp--spreadlinks .btekst--lopend { margin-top: 4mm; font-size: 9.2pt; line-height: 1.7; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; }
+.bp--spreadlinks .doorloop { position: absolute; top: 0; right: 0; bottom: 0; width: 105mm; }
+.bp--spreadlinks .doorloop img { width: 315mm; height: 297mm; object-fit: cover; display: block; }
+.bp--spreadrechts .doorloop { position: absolute; inset: 0; }
+.bp--spreadrechts .doorloop img { width: 315mm; height: 297mm; object-fit: cover; display: block; margin-left: -105mm; }
+.bp--spreadlinks .bp-nr, .bp--spreadrechts .bp-nr { color: #fff; text-shadow: 0 1px 4px rgba(29,32,35,.55); }
+
+/* ---------- layout: fototekst (VEROUDERD - alleen voor oude opgeslagen brochures) ---------- */
 .bp--fototekst { padding: 26mm 14mm 14mm; display: grid; grid-template-columns: 86mm 1fr; gap: 7mm; }
 .bp--fototekst .links { display: flex; flex-direction: column; min-width: 0; }
 .bp--fototekst h2 { font-size: 15.5pt; font-weight: 700; line-height: 1.15; margin-top: 2.5mm; min-height: 9mm; }
@@ -63,11 +124,11 @@
 .bp--fototekst .rechts { border-radius: 4mm; overflow: hidden; }
 .bp--fototekst .rechts .bslot { height: 100%; }
 
-/* ---------- layout: raster 2x2 ---------- */
+/* ---------- layout: raster 2x3 (6 liggende foto's) ---------- */
 .bp--raster { padding: 26mm 14mm 14mm; display: flex; flex-direction: column; }
-.bp--raster .grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 5mm; }
+.bp--raster .grid { flex: none; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 68mm 68mm 68mm; gap: 5mm; }
 .bp--raster .grid .bslot { border-radius: 4mm; }
-.bp--raster .btekst--caption { margin-top: 4mm; font-size: 8.5pt; color: #4b4a45; text-align: center; min-height: 5mm; }
+.bp--raster .btekst--caption { margin-top: 5mm; font-size: 8.5pt; color: #4b4a45; text-align: center; min-height: 5mm; }
 
 /* ---------- layout: vol (full-bleed foto + bijschrift) ---------- */
 .bp--vol .bslot { position: absolute; inset: 0; }

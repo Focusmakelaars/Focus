@@ -646,19 +646,28 @@ async function brDataURL(url) {
   return naarDataURL(blob);
 }
 
+/* Alle fotovakken zijn liggend (wens Robbie: langgerekte staande vakken zijn onbruikbaar).
+   "fototekst" en "tekst3" staan niet meer in de keuzelijst (staande vakken) maar renderen
+   nog wél, zodat eerder bewaard werk blijft werken. */
 const ED_LAYOUTS = {
-  cover:        { naam: "Cover" },
-  fototekst:    { naam: "Grote foto + tekst" },
-  raster:       { naam: "Fotoraster 2×2" },
-  vol:          { naam: "Paginavullende foto" },
-  tekst3:       { naam: "Tekst + 3 foto's" },
-  bijzonder:    { naam: "Bijzonderheden" },
-  kenmerken:    { naam: "Kenmerken (automatisch)" },
-  plattegrond:  { naam: "Plattegrond" },
-  lijstvanzaken:{ naam: "Lijst van zaken (automatisch)" },
-  kaarten:      { naam: "Kadastrale kaart + locatie" },
-  overfocus:    { naam: "Over Focus (vast)" },
-  contact:      { naam: "Contact (vast)" }
+  cover:         { naam: "Cover" },
+  fotos2boven:   { naam: "2 foto's boven + tekst" },
+  magazine:      { naam: "Magazine (foto boven + tekst)" },
+  tekstbovenfoto:{ naam: "Tekst boven + grote foto" },
+  tekstfoto:     { naam: "Tekst + 2 foto's + accent" },
+  sfeer:         { naam: "Quote + panorama" },
+  drieluik:      { naam: "Drieluik (3 foto's)" },
+  spreadlinks:   { naam: "Spread links (tekst + doorloopfoto)" },
+  spreadrechts:  { naam: "Spread rechts (vervolg foto)" },
+  raster:        { naam: "Fotoraster (6 foto's)" },
+  vol:           { naam: "Paginavullende foto" },
+  bijzonder:     { naam: "Bijzonderheden" },
+  kenmerken:     { naam: "Kenmerken (automatisch)" },
+  plattegrond:   { naam: "Plattegrond" },
+  lijstvanzaken: { naam: "Lijst van zaken (automatisch)" },
+  kaarten:       { naam: "Kadastrale kaart + locatie" },
+  overfocus:     { naam: "Over Focus (vast)" },
+  contact:       { naam: "Contact (vast)" }
 };
 
 /* lijst van zaken: geneste Realworks-structuur → platte rijen */
@@ -783,7 +792,64 @@ function edPaginaHTML(p, nr) {
         <div class="bp-merkrow">Focus Makelaars ${esc(vestNaam)}</div>
         <div class="bp-logo bp-logo--wit">${ed.logoWit}</div></div>`;
     }
-    case "fototekst":
+    case "fotos2boven":
+      return `<div class="bp bp--fotos2boven">${logo}${nrBadge}
+        <div class="rij">${edSlot(p, "f1")}${edSlot(p, "f2")}</div>
+        <span class="bkicker">${esc(straatnr)}</span>
+        ${edTekst(p, "kop", "", "Klik om een kop te typen…", "h2")}
+        ${edTekst(p, "lopend", "btekst--lopend", "Klik en typ of plak hier de tekst — bijvoorbeeld uit het Realworks-paneel links.")}</div>`;
+    case "magazine":
+      return `<div class="bp bp--magazine">${nrBadge}
+        <div class="held">${edSlot(p, "f1")}</div>
+        <div class="bp-logo bp-logo--wit">${ed.logoWit}</div>
+        <div class="onder"><span class="bkicker">${esc(straatnr)}</span>
+          ${edTekst(p, "kop", "", "Klik om een kop te typen…", "h2")}
+          ${edTekst(p, "lopend", "btekst--lopend", "Klik en typ of plak hier de tekst…")}</div></div>`;
+    case "tekstbovenfoto":
+      return `<div class="bp bp--tekstbovenfoto">${logo}${nrBadge}
+        <span class="bkicker">${esc(straatnr)}</span>
+        ${edTekst(p, "kop", "", "Klik om een kop te typen…", "h2")}
+        ${edTekst(p, "lopend", "btekst--lopend", "Klik en typ of plak hier de tekst…")}
+        ${edSlot(p, "f1", "bslot--onder")}</div>`;
+    case "tekstfoto":
+      return `<div class="bp bp--tekstfoto">${logo}${nrBadge}
+        <div class="links"><span class="bkicker">${esc(straatnr)}</span>
+          ${edTekst(p, "kop", "", "Klik om een kop te typen…", "h2")}
+          ${edTekst(p, "lopend", "btekst--lopend", "Klik en typ of plak hier de tekst…")}</div>
+        <div class="rechts">${edSlot(p, "f1")}
+          <div class="accent">${edTekst(p, "accent", "btekst--accent", 'Klik voor een accent — bijv. "Licht, ruim en instapklaar."')}</div>
+          ${edSlot(p, "f2")}</div></div>`;
+    case "sfeer":
+      return `<div class="bp bp--sfeer">${logo}${nrBadge}
+        <span class="bkicker">${esc(straatnr)}</span>
+        ${edTekst(p, "quote", "btekst--quote serif", "Klik voor een sfeerzin — bijv. Thuiskomen begint bij de voordeur.")}
+        ${edSlot(p, "f1", "bslot--panorama")}
+        <div class="rij">${edSlot(p, "f2")}${edSlot(p, "f3")}</div></div>`;
+    case "drieluik":
+      return `<div class="bp bp--drieluik">${logo}${nrBadge}
+        <span class="bkicker">${esc(straatnr)}</span>
+        ${edSlot(p, "f1", "bslot--groot")}
+        <div class="rij">${edSlot(p, "f2")}${edSlot(p, "f3")}</div>
+        ${edTekst(p, "caption", "btekst--caption", "Optioneel bijschrift…")}</div>`;
+    case "spreadlinks": {
+      const src = edFotoSrc(p.fotos.f1);
+      const inhoud = src ? `<img src="${src}" alt="">`
+        : `<div class="bslot-leeg">${ED_LEEG_SVG}<span>Klik voor de doorloopfoto<br>(loopt door op de<br>volgende pagina)</span></div>`;
+      return `<div class="bp bp--spreadlinks">${logo}${nrBadge}
+        <div class="tekst"><span class="bkicker">${esc(straatnr)}</span>
+          ${edTekst(p, "kop", "", "Klik om een kop te typen…", "h2")}
+          ${edTekst(p, "lopend", "btekst--lopend", "Klik en typ of plak hier de tekst…")}</div>
+        <div class="bslot doorloop" data-slot="f1">${inhoud}</div></div>`;
+    }
+    case "spreadrechts": {
+      const vorige = ed.paginas[nr - 2];
+      const bron = vorige && vorige.layout === "spreadlinks" ? edFotoSrc(vorige.fotos.f1) : null;
+      const inhoud = bron ? `<img src="${bron}" alt="">`
+        : `<div class="bslot-leeg">${ED_LEEG_SVG}<span>Vervolg van de doorloopfoto —<br>deze pagina hoort direct na<br>een "Spread links"-pagina</span></div>`;
+      return `<div class="bp bp--spreadrechts">${nrBadge}
+        <div class="bslot doorloop" data-slot="f1" data-spread="vorige">${inhoud}</div></div>`;
+    }
+    case "fototekst": /* verouderd — alleen voor oude opgeslagen brochures */
       return `<div class="bp bp--fototekst">${logo}${nrBadge}
         <div class="links"><span class="bkicker">${esc(straatnr)}</span>
           ${edTekst(p, "kop", "", "Klik om een kop te typen…", "h2")}
@@ -793,7 +859,7 @@ function edPaginaHTML(p, nr) {
         <div class="rechts">${edSlot(p, "f1")}</div></div>`;
     case "raster":
       return `<div class="bp bp--raster">${logo}${nrBadge}
-        <div class="grid">${edSlot(p, "f1")}${edSlot(p, "f2")}${edSlot(p, "f3")}${edSlot(p, "f4")}</div>
+        <div class="grid">${edSlot(p, "f1")}${edSlot(p, "f2")}${edSlot(p, "f3")}${edSlot(p, "f4")}${edSlot(p, "f5")}${edSlot(p, "f6")}</div>
         ${edTekst(p, "caption", "btekst--caption", "Optioneel bijschrift…")}</div>`;
     case "vol":
       return `<div class="bp bp--vol">${edSlot(p, "f1")}<div class="scrim"></div>
@@ -885,34 +951,36 @@ function edPaginaHTML(p, nr) {
 }
 
 function edStandaardPaginas(obj) {
-  /* Vaste opzet (wens Robbie): p1 cover · p2-8 inhoud · p9 kenmerken ·
-     p10-13 plattegronden · p14(+) lijst van zaken · p15 Over Focus · p16 achterkant. */
+  /* Vaste 16-pagina-opzet (wens Robbie, 08-08): cover · 2 foto's+tekst · magazine ·
+     tekst boven+grote foto · tekst+2 foto's+accent · quote+panorama · drieluik ·
+     kenmerken · 3× plattegrond · kadastraal+locatie · 2× lijst van zaken ·
+     Over Focus · achterkant. Alle fotovakken liggend. */
   const teksten = obj.teksten || {};
   const tekst = teksten.a4Tekst || teksten.aanbiedingstekst || "";
   const media = ed.media;
   const foto = i => (media[i] ? { bron: "media", i } : undefined);
   const paginas = [
-    { layout: "cover", fotos: { f1: foto(0) }, teksten: {} },                                              // 1
-    { layout: "fototekst", fotos: { f1: foto(1), f2: foto(2) }, teksten: { kop: "Welkom binnen.", lopend: tekst } }, // 2
-    { layout: "raster", fotos: { f1: foto(3), f2: foto(4), f3: foto(5), f4: foto(6) }, teksten: {} },      // 3
-    { layout: "fototekst", fotos: { f1: foto(7), f2: foto(8) }, teksten: { kop: "", lopend: "" } },        // 4
-    { layout: "vol", fotos: { f1: foto(9) }, teksten: {} },                                                // 5
-    { layout: "tekst3", fotos: { f1: foto(10), f2: foto(11), f3: foto(12) }, teksten: { kop: "", lopend: "" } }, // 6
-    { layout: "raster", fotos: { f1: foto(13), f2: foto(14), f3: foto(15), f4: foto(16) }, teksten: {} },  // 7
-    { layout: "bijzonder", fotos: { f1: foto(17) }, teksten: { lijst: "" } },                              // 8
-    { layout: "kenmerken", fotos: {}, teksten: {} }                                                        // 9
+    { layout: "cover", fotos: { f1: foto(0) }, teksten: {} },                                                    // 1
+    { layout: "fotos2boven", fotos: { f1: foto(1), f2: foto(2) }, teksten: { kop: "Welkom binnen.", lopend: tekst } }, // 2
+    { layout: "magazine", fotos: { f1: foto(3) }, teksten: { kop: "", lopend: "" } },                            // 3
+    { layout: "tekstbovenfoto", fotos: { f1: foto(4) }, teksten: { kop: "", lopend: "" } },                      // 4
+    { layout: "tekstfoto", fotos: { f1: foto(5), f2: foto(6) }, teksten: { kop: "", lopend: "", accent: "" } },  // 5
+    { layout: "sfeer", fotos: { f1: foto(7), f2: foto(8), f3: foto(9) }, teksten: { quote: "" } },               // 6
+    { layout: "drieluik", fotos: { f1: foto(10), f2: foto(11), f3: foto(12) }, teksten: { caption: "" } },       // 7
+    { layout: "kenmerken", fotos: {}, teksten: {} }                                                              // 8
   ];
-  // p10-13: altijd 4 plattegrond-pagina's — eerst de echte plattegronden uit Realworks, rest leeg
+  // p9-11: 3 plattegrond-pagina's — eerst de echte plattegronden uit Realworks, rest leeg
   const plats = media.map((m, i) => ({ m, i })).filter(x => x.m.soort === "PLATTEGROND");
-  for (let k = 0; k < 4; k++)
+  for (let k = 0; k < 3; k++)
     paginas.push({ layout: "plattegrond",
       fotos: plats[k] ? { f1: { bron: "media", i: plats[k].i } } : {},
       teksten: { kop: "Plattegrond" } });
-  // extra plattegronden (5e) ook meenemen
-  for (let k = 4; k < plats.length; k++)
+  // extra plattegronden (4e en verder) ook meenemen
+  for (let k = 3; k < plats.length; k++)
     paginas.push({ layout: "plattegrond", fotos: { f1: { bron: "media", i: plats[k].i } }, teksten: { kop: "Plattegrond" } });
-  // p14(+): lijst van zaken — zoveel pagina's als de lijst nodig heeft
-  const lvzPaginas = Math.max(1, Math.ceil((ed.lvz || []).length / LVZ_PER_PAGINA));
+  paginas.push({ layout: "kaarten", fotos: {}, teksten: {} });    // 12 kadastraal + locatie
+  // p13-14: lijst van zaken — minimaal 2, meer als de lijst dat vraagt
+  const lvzPaginas = Math.max(2, Math.ceil((ed.lvz || []).length / LVZ_PER_PAGINA));
   for (let i = 0; i < lvzPaginas; i++) paginas.push({ layout: "lijstvanzaken", fotos: {}, teksten: {} });
   paginas.push({ layout: "overfocus", fotos: {}, teksten: {} });  // 15
   paginas.push({ layout: "contact", fotos: {}, teksten: {} });    // 16 achterkant
@@ -929,10 +997,58 @@ function edRenderStrip() {
   strip.querySelectorAll(".ed-mini [contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
 }
 
+/* ---------- blader-weergave: 1 pagina of spread (2 naast elkaar) ----------
+   Pagina 1 (cover) staat altijd alleen; daarna spreads 2-3, 4-5, enz. —
+   precies zoals de brochure straks gedrukt en opengeslagen wordt. */
+let edWeergave = +(() => { try { return localStorage.getItem("fs-ed-weergave"); } catch { return 1; } })() || 1;
+
+function edSpreadVan(i) {
+  if (i === 0) return [0];
+  const start = i % 2 === 1 ? i : i - 1;
+  return start + 1 < ed.paginas.length ? [start, start + 1] : [start];
+}
+
+function edBladLabel() {
+  if (!ed) return;
+  const idx = edWeergave === 2 ? edSpreadVan(ed.actief) : [ed.actief];
+  $("#edBlad").textContent = `Pagina ${idx.map(i => i + 1).join("–")} van ${ed.paginas.length}`;
+}
+
+function edActiveer(i) {
+  // actieve pagina wisselen zonder her-render (behoudt focus/caret in tekstvakken)
+  ed.actief = i;
+  $$("#edCanvas .ed-spreadpagina").forEach(el => el.classList.toggle("is-actief", +el.dataset.pagina === i));
+  $$("#edStrip .ed-mini").forEach(el => el.classList.toggle("is-actief", +el.dataset.p === i));
+  $("#edLayout").value = ed.paginas[i].layout;
+  edBladLabel();
+}
+
+function edBlader(richting) {
+  if (!ed) return;
+  let doel;
+  if (edWeergave === 2) {
+    const start = edSpreadVan(ed.actief)[0];
+    doel = start === 0 ? (richting > 0 ? 1 : 0) : start + richting * 2;
+    if (doel < 0) doel = 0;
+  } else doel = ed.actief + richting;
+  if (doel < 0 || doel >= ed.paginas.length || doel === ed.actief) return;
+  ed.actief = doel;
+  edRender();
+}
+
 function edRenderCanvas() {
-  const p = ed.paginas[ed.actief];
-  $("#edCanvas").innerHTML = edPaginaHTML(p, ed.actief + 1);
-  $("#edLayout").value = p.layout;
+  const canvas = $("#edCanvas");
+  canvas.classList.toggle("ed-schaal--spread", edWeergave === 2);
+  if (edWeergave === 2) {
+    const idx = edSpreadVan(ed.actief);
+    canvas.innerHTML = `<div class="ed-spread${idx[0] === 0 ? " ed-spread--los" : ""}">` +
+      idx.map(i => `<div class="ed-spreadpagina${i === ed.actief ? " is-actief" : ""}" data-pagina="${i}">` +
+                   edPaginaHTML(ed.paginas[i], i + 1) + `</div>`).join("") + `</div>`;
+  } else {
+    canvas.innerHTML = edPaginaHTML(ed.paginas[ed.actief], ed.actief + 1);
+  }
+  $("#edLayout").value = ed.paginas[ed.actief].layout;
+  edBladLabel();
 }
 
 function edRender() {
@@ -948,6 +1064,7 @@ function edRender() {
 }
 
 let edFotoSlotDoel = null;
+let edFotoDoelPagina = null; // meestal ed.actief; bij "Spread rechts" de linkerpagina
 function edOpenFotoKiezer(slot) {
   edFotoSlotDoel = slot;
   const grid = $("#edFotoGrid");
@@ -956,7 +1073,7 @@ function edOpenFotoKiezer(slot) {
     '<p style="color:var(--ink-soft)">Geen media gevonden bij deze woning.</p>';
   $("#edFotoModal").classList.remove("is-verborgen");
 }
-function edSluitFotoKiezer() { $("#edFotoModal").classList.add("is-verborgen"); edFotoSlotDoel = null; }
+function edSluitFotoKiezer() { $("#edFotoModal").classList.add("is-verborgen"); edFotoSlotDoel = null; edFotoDoelPagina = null; }
 
 let edKiesNr = 0;       // race-guard: alleen de laatst gekozen woning mag de editor vullen
 let edLaadCode = null;  // objectcode die nu laadt (voorkomt dubbel laden via tab-wissel)
@@ -974,6 +1091,8 @@ async function edKies(compactObj) {
   $("#edCanvas").classList.add("is-verborgen");
   $("#edStrip").classList.add("is-verborgen");
   $("#edToolbar").classList.add("is-verborgen");
+  $("#edBladerL").classList.add("is-verborgen");
+  $("#edBladerR").classList.add("is-verborgen");
   $("#edLaden").classList.remove("is-verborgen");
   laad(`${compactObj.straat} ${compactObj.huisnummer} laden…`);
   try {
@@ -1039,6 +1158,8 @@ async function edKies(compactObj) {
     $("#edCanvas").classList.remove("is-verborgen");
     $("#edStrip").classList.remove("is-verborgen");
     $("#edToolbar").classList.remove("is-verborgen");
+    $("#edBladerL").classList.remove("is-verborgen");
+    $("#edBladerR").classList.remove("is-verborgen");
     $("#brPrint").disabled = false;
     ed.actief = 0;
     edRender();
@@ -1054,7 +1175,7 @@ async function edKies(compactObj) {
 async function edPrint() {
   if (!ed) return;
   $("#brHint").textContent = "PDF-weergave openen…";
-  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=4")).text()]);
+  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=5")).text()]);
   edPrintModus = true;
   let paginasHTML;
   try { paginasHTML = ed.paginas.map((p, i) => edPaginaHTML(p, i + 1)).join(""); }
@@ -1095,6 +1216,12 @@ function brInit() {
   layoutSel.addEventListener("change", () => {
     if (!ed) return;
     ed.paginas[ed.actief].layout = layoutSel.value;
+    // spread is een tweeluik: bij "Spread links" hoort direct een "Spread rechts"-pagina
+    if (layoutSel.value === "spreadlinks") {
+      const volgende = ed.paginas[ed.actief + 1];
+      if (!volgende || volgende.layout !== "spreadrechts")
+        ed.paginas.splice(ed.actief + 1, 0, { layout: "spreadrechts", fotos: {}, teksten: {} });
+    }
     edRender();
   });
   $("#edOmhoog").addEventListener("click", () => {
@@ -1117,7 +1244,7 @@ function brInit() {
   });
   $("#edToevoeg").addEventListener("click", () => {
     if (!ed) return;
-    ed.paginas.splice(++ed.actief, 0, { layout: "fototekst", fotos: {}, teksten: {} });
+    ed.paginas.splice(++ed.actief, 0, { layout: "tekstbovenfoto", fotos: {}, teksten: {} });
     ed.actief = Math.min(ed.actief, ed.paginas.length - 1);
     edRender();
   });
@@ -1136,7 +1263,7 @@ function brInit() {
   $("#edStrip").addEventListener("click", e => {
     const nieuw = e.target.closest("#edNieuw");
     if (nieuw && ed) {
-      ed.paginas.splice(++ed.actief, 0, { layout: "fototekst", fotos: {}, teksten: {} });
+      ed.paginas.splice(++ed.actief, 0, { layout: "tekstbovenfoto", fotos: {}, teksten: {} });
       ed.actief = Math.min(ed.actief, ed.paginas.length - 1);
       edRender();
       return;
@@ -1147,8 +1274,12 @@ function brInit() {
 
   // canvas: fotoslots, lijst-van-zaken-vinkjes + tekstinvoer
   $("#edCanvas").addEventListener("click", e => {
+    if (!ed) return;
+    // in spread-weergave: klik in een pagina maakt die pagina actief
+    const sp = e.target.closest(".ed-spreadpagina");
+    if (sp && +sp.dataset.pagina !== ed.actief) edActiveer(+sp.dataset.pagina);
     const cel = e.target.closest("[data-lvz]");
-    if (cel && ed) {
+    if (cel) {
       const sleutel = cel.dataset.lvz, ant = cel.dataset.ant;
       const origineel = (ed.lvz.find(r => r.sleutel === sleutel) || {}).antwoord;
       ed.lvzOverrides = ed.lvzOverrides || {};
@@ -1158,13 +1289,23 @@ function brInit() {
       return;
     }
     const slot = e.target.closest(".bslot");
-    if (slot && !e.target.closest("[contenteditable]")) edOpenFotoKiezer(slot.dataset.slot);
+    if (slot && !e.target.closest("[contenteditable]")) {
+      edFotoDoelPagina = ed.actief;
+      if (slot.dataset.spread === "vorige") {
+        // "Spread rechts" toont de foto van de linkerpagina — die bewerken we dus
+        if (!(ed.actief > 0 && ed.paginas[ed.actief - 1].layout === "spreadlinks")) return;
+        edFotoDoelPagina = ed.actief - 1;
+      }
+      edOpenFotoKiezer(slot.dataset.slot);
+    }
   });
   let stripTimer = null;
   $("#edCanvas").addEventListener("input", e => {
     const el = e.target.closest("[data-tslot]");
     if (!el || !ed) return;
-    ed.paginas[ed.actief].teksten[el.dataset.tslot] = el.innerText;
+    const sp = e.target.closest(".ed-spreadpagina");
+    const doel = sp ? +sp.dataset.pagina : ed.actief;
+    ed.paginas[doel].teksten[el.dataset.tslot] = el.innerText;
     clearTimeout(stripTimer);
     stripTimer = setTimeout(() => { edRenderStrip(); edBewaar(); }, 600);
   });
@@ -1175,21 +1316,21 @@ function brInit() {
   $("#edFotoGrid").addEventListener("click", e => {
     const b = e.target.closest("button[data-i]");
     if (!b || !ed || edFotoSlotDoel == null) return;
-    ed.paginas[ed.actief].fotos[edFotoSlotDoel] = { bron: "media", i: +b.dataset.i };
+    ed.paginas[edFotoDoelPagina ?? ed.actief].fotos[edFotoSlotDoel] = { bron: "media", i: +b.dataset.i };
     edSluitFotoKiezer();
     edRender();
   });
   $("#edFotoUpload").addEventListener("change", async e => {
     const f = e.target.files[0];
     if (!f || !ed || edFotoSlotDoel == null) return;
-    ed.paginas[ed.actief].fotos[edFotoSlotDoel] = { bron: "upload", dataurl: await naarDataURL(f) };
+    ed.paginas[edFotoDoelPagina ?? ed.actief].fotos[edFotoSlotDoel] = { bron: "upload", dataurl: await naarDataURL(f) };
     e.target.value = "";
     edSluitFotoKiezer();
     edRender();
   });
   $("#edFotoLeeg").addEventListener("click", () => {
     if (!ed || edFotoSlotDoel == null) return;
-    delete ed.paginas[ed.actief].fotos[edFotoSlotDoel];
+    delete ed.paginas[edFotoDoelPagina ?? ed.actief].fotos[edFotoSlotDoel];
     edSluitFotoKiezer();
     edRender();
   });
@@ -1204,6 +1345,28 @@ function brInit() {
   });
 
   $("#brPrint").addEventListener("click", edPrint);
+
+  // blader-weergave: 1 pagina of spread
+  const zetWeergave = n => {
+    edWeergave = n;
+    try { localStorage.setItem("fs-ed-weergave", n); } catch {}
+    $("#edWeergave1").classList.toggle("is-actief", n === 1);
+    $("#edWeergave2").classList.toggle("is-actief", n === 2);
+    if (ed) edRenderCanvas();
+  };
+  $("#edWeergave1").addEventListener("click", () => zetWeergave(1));
+  $("#edWeergave2").addEventListener("click", () => zetWeergave(2));
+  zetWeergave(edWeergave === 2 ? 2 : 1);
+
+  $("#edBladerL").addEventListener("click", () => edBlader(-1));
+  $("#edBladerR").addEventListener("click", () => edBlader(1));
+  document.addEventListener("keydown", e => {
+    if (!ed || $("#tab-brochure").classList.contains("is-verborgen")) return;
+    const a = document.activeElement;
+    if (a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); edBlader(1); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); edBlader(-1); }
+  });
 }
 
 /* ---------- woning-hub + omwonende-mailing ---------- */
@@ -1311,7 +1474,7 @@ function omRender() {
 }
 
 async function omPrintDoc() {
-  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=4")).text()]);
+  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=5")).text()]);
   return `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Omwonende-mailing</title>
     <style>${fonts}\n${css}\n@page{size:148mm 210mm;margin:0}html,body{margin:0;padding:0}[contenteditable]{outline:none}</style>
     </head><body>${omHTML().replace(/ contenteditable="true"/g, "")}</body></html>`;
