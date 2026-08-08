@@ -4,6 +4,9 @@
    ============================================================ */
 
 .bp {
+  /* border-box is essentieel: layouts met padding moeten binnen exact A4 blijven,
+     anders smeert Chrome elke pagina over meerdere PDF-pagina's uit (27-i.p.v.-16-bug) */
+  box-sizing: border-box;
   width: 210mm; height: 297mm; position: relative; overflow: hidden;
   background: var(--helder-beige, #F7F3EB);
   font-family: "Silka", sans-serif; color: var(--pupil-zwart, #1D2023);
@@ -126,7 +129,7 @@
 .bp--overfocus .foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* ============ OMWONENDE-MAILING (A5, voor + achter) ============ */
-.mp { width: 148mm; height: 210mm; position: relative; overflow: hidden; background: var(--helder-beige, #F7F3EB); font-family: "Silka", sans-serif; color: #1D2023; page-break-after: always; }
+.mp { box-sizing: border-box; width: 148mm; height: 210mm; position: relative; overflow: hidden; background: var(--helder-beige, #F7F3EB); font-family: "Silka", sans-serif; color: #1D2023; page-break-after: always; }
 .mp * { box-sizing: border-box; }
 .mp .serif { font-family: "STIX Two Text", Georgia, serif; font-style: italic; }
 .mp--voor .bslot { position: absolute; inset: 0 0 auto 0; height: 108mm; }

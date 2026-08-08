@@ -1029,14 +1029,14 @@ async function edKies(compactObj) {
 async function edPrint() {
   if (!ed) return;
   $("#brHint").textContent = "PDF-weergave openen…";
-  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=3")).text()]);
+  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=4")).text()]);
   edPrintModus = true;
   let paginasHTML;
   try { paginasHTML = ed.paginas.map((p, i) => edPaginaHTML(p, i + 1)).join(""); }
   finally { edPrintModus = false; }
   const doc = `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Brochure</title>
     <style>${fonts}\n${paginaCSS}\n@page{size:210mm 297mm;margin:0}html,body{margin:0;padding:0}.bp{page-break-after:always}
-    .bslot-leeg{display:none!important}[contenteditable]{outline:none}</style></head>
+    .bslot-leeg{display:none!important}.vervolg{display:none!important}[contenteditable]{outline:none}</style></head>
     <body>${paginasHTML.replace(/ contenteditable="true"/g, "")}
     <script>addEventListener("load",()=>setTimeout(()=>print(),900))<\/script></body></html>`;
   const w = window.open(URL.createObjectURL(new Blob([doc], { type: "text/html" })), "_blank");
@@ -1276,7 +1276,7 @@ function omRender() {
 }
 
 async function omPrintDoc() {
-  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=3")).text()]);
+  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=4")).text()]);
   return `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Omwonende-mailing</title>
     <style>${fonts}\n${css}\n@page{size:148mm 210mm;margin:0}html,body{margin:0;padding:0}[contenteditable]{outline:none}</style>
     </head><body>${omHTML().replace(/ contenteditable="true"/g, "")}</body></html>`;
