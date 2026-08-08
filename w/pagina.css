@@ -1,0 +1,114 @@
+/* ============================================================
+   FOCUS WONINGPAGINA — met oog voor jou
+   Deelbare presentatie per woning (QR op het bord / de mailing)
+   ============================================================ */
+
+@font-face { font-family: "Silka"; src: url("../assets/fonts/Silka-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Silka"; src: url("../assets/fonts/Silka-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Silka"; src: url("../assets/fonts/Silka-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Silka"; src: url("../assets/fonts/Silka-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Silka"; src: url("../assets/fonts/Silka-Black.woff2") format("woff2"); font-weight: 900; font-display: swap; }
+@font-face { font-family: "STIX Two Text"; src: url("../assets/fonts/STIXTwoTextItalic-Var.woff2") format("woff2"); font-weight: 400 600; font-style: italic; font-display: swap; }
+
+:root {
+  --warm-oranje: #F15D22;
+  --focus-oranje: #F6871F;
+  --comfort-beige: #DFD1BB;
+  --helder-beige: #F7F3EB;
+  --iris-bruin: #B0836B;
+  --pupil-zwart: #1D2023;
+  --wit: #FFFFFF;
+  --ink-soft: #4b4a45;
+  --sans: "Silka", "Trebuchet MS", sans-serif;
+  --serif: "STIX Two Text", Georgia, serif;
+  --ease: cubic-bezier(.22,.8,.32,1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); background: var(--helder-beige); color: var(--pupil-zwart); line-height: 1.6; }
+.serif { font-family: var(--serif); font-style: italic; }
+.is-verborgen { display: none !important; }
+img { max-width: 100%; display: block; }
+button, input { font: inherit; }
+
+.shell { max-width: 880px; margin: 0 auto; padding: 1.4rem 1.2rem 3rem; }
+
+/* top */
+.top { display: flex; align-items: center; justify-content: space-between; padding: .4rem 0 1.6rem; }
+.merk { display: flex; align-items: center; gap: .6rem; font-weight: 700; font-size: 1.15rem; color: var(--pupil-zwart); text-decoration: none; letter-spacing: -.01em; }
+.merk svg { width: 34px; height: 34px; color: var(--warm-oranje); }
+.merk .serif { color: var(--warm-oranje); font-weight: 500; margin-left: -.25rem; }
+.top__oog { color: var(--iris-bruin); font-size: .95rem; }
+
+/* meldingen */
+.melding { text-align: center; padding: 5rem 1rem; color: var(--ink-soft); }
+.melding__oog svg { width: 54px; height: 54px; color: var(--warm-oranje); animation: draai 1.1s var(--ease) both; margin-bottom: 1rem; }
+@keyframes draai { from { transform: rotate(-90deg) scale(.6); opacity: 0 } to { transform: none; opacity: 1 } }
+.melding__contact { margin-top: 1rem; font-weight: 600; color: var(--pupil-zwart); }
+.melding__contact a { color: var(--warm-oranje); }
+
+/* hero */
+.hero__foto { aspect-ratio: 16/9.5; border-radius: 18px; overflow: hidden; background: var(--comfort-beige); }
+.hero__foto img { width: 100%; height: 100%; object-fit: cover; }
+.hero__balk { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-top: 1.4rem; flex-wrap: wrap; }
+.kicker { display: inline-flex; align-items: center; gap: .55rem; font-size: .72rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--warm-oranje); }
+.kicker::before { content: ""; width: 26px; height: 3px; border-radius: 3px; background: var(--warm-oranje); }
+h1 { font-size: clamp(1.6rem, 4.5vw, 2.4rem); font-weight: 700; letter-spacing: -.015em; line-height: 1.08; margin-top: .45rem; }
+.hero__plaats { color: var(--iris-bruin); font-size: 1.15rem; margin-top: .15rem; }
+.hero__prijs { background: var(--warm-oranje); color: #fff; font-weight: 700; font-size: 1.15rem; border-radius: 999px; padding: .55rem 1.3rem; white-space: nowrap; }
+.hero__kern { display: flex; gap: .5rem; margin-top: 1.2rem; flex-wrap: wrap; }
+.hero__kern div { background: var(--wit); border-radius: 12px; padding: .55rem .95rem .5rem; text-align: center; flex: 1; min-width: 96px; }
+.hero__kern strong { display: block; font-size: 1rem; font-weight: 900; letter-spacing: -.01em; }
+.hero__kern span { display: block; font-size: .68rem; color: var(--ink-soft); margin-top: .1rem; }
+
+/* poort */
+.poort { background: var(--wit); border-radius: 18px; padding: 2rem 1.8rem; margin-top: 2rem; box-shadow: 0 20px 50px -30px rgba(29,32,35,.35); }
+.poort h2, .blok h2, .cta h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -.01em; line-height: 1.15; margin-top: .4rem; }
+.poort h2 .serif, .blok h2 .serif, .cta h2 .serif { color: var(--iris-bruin); font-weight: 500; }
+.poort p { color: var(--ink-soft); margin-top: .6rem; max-width: 52ch; }
+.poort form { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; margin-top: 1.2rem; }
+.poort input { border: 1.5px solid var(--comfort-beige); border-radius: 12px; padding: .8rem 1rem; background: var(--helder-beige); outline: none; transition: border-color .2s; }
+.poort input:focus { border-color: var(--warm-oranje); }
+.poort input#wNaam { grid-column: 1 / -1; }
+.knop { display: inline-flex; align-items: center; justify-content: center; gap: .55rem; background: var(--warm-oranje); color: #fff; font-weight: 700; border: none; border-radius: 999px; padding: .85rem 1.5rem; cursor: pointer; transition: transform .15s, background .2s; grid-column: 1 / -1; }
+.knop:hover { background: var(--pupil-zwart); }
+.knop:active { transform: scale(.97); }
+.knop svg { width: 18px; height: 18px; }
+.poort__privacy { font-size: .78rem; color: var(--iris-bruin); margin-top: .8rem; }
+.poort__fout { color: #c0392b; font-weight: 600; margin-top: .8rem; }
+
+/* blokken */
+.blok { margin-top: 3rem; }
+.verhaal { margin-top: 1rem; color: var(--ink-soft); white-space: pre-line; max-width: 68ch; }
+.galerij { margin-top: 1.2rem; display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.galerij .foto { border-radius: 14px; overflow: hidden; background: var(--comfort-beige); aspect-ratio: 4/3; }
+.galerij .foto img { width: 100%; height: 100%; object-fit: cover; }
+.galerij .foto--breed { grid-column: 1 / -1; aspect-ratio: 16/9; }
+.feiten { margin-top: 1.2rem; display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.feiten .fblok { background: var(--wit); border-radius: 14px; padding: 1rem 1.2rem; }
+.feiten h3 { font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--warm-oranje); margin-bottom: .5rem; }
+.feiten table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.feiten td { padding: .22rem 0; color: var(--ink-soft); vertical-align: top; }
+.feiten td:first-child { width: 46%; }
+.feiten td:last-child { font-weight: 600; color: var(--pupil-zwart); }
+
+/* cta */
+.cta { margin-top: 3rem; background: var(--pupil-zwart); color: #fff; border-radius: 18px; padding: 2rem 1.8rem; position: relative; overflow: hidden; }
+.cta::after { content: ""; position: absolute; width: 240px; height: 240px; border-radius: 50%; border: 1.5px solid rgba(246,135,31,.3); right: -90px; top: -90px; }
+.cta h2 .serif { color: var(--focus-oranje); }
+.cta p { color: var(--comfort-beige); margin-top: .6rem; max-width: 56ch; }
+.cta__knoppen { display: flex; gap: .8rem; margin-top: 1.3rem; flex-wrap: wrap; position: relative; z-index: 1; }
+.cta__knoppen a { display: inline-flex; align-items: center; gap: .5rem; text-decoration: none; font-weight: 700; border-radius: 999px; padding: .75rem 1.4rem; }
+.cta__knoppen a.bel { background: var(--warm-oranje); color: #fff; }
+.cta__knoppen a.mail { background: #fff; color: var(--pupil-zwart); }
+
+/* voet */
+.voet { margin-top: 3rem; padding-top: 1.4rem; border-top: 1.5px solid var(--comfort-beige); font-size: .85rem; color: var(--ink-soft); display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.voet a { color: var(--warm-oranje); font-weight: 600; text-decoration: none; }
+.voet a:hover { text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .poort form { grid-template-columns: 1fr; }
+  .feiten { grid-template-columns: 1fr; }
+  .hero__prijs { font-size: 1rem; }
+}

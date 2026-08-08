@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
 <link rel="stylesheet" href="poster.css?v=5">
-<link rel="stylesheet" href="studio.css?v=13">
+<link rel="stylesheet" href="studio.css?v=14">
 <link rel="stylesheet" href="brochure-paginas.css?v=6">
 </head>
 <body>
@@ -70,6 +70,21 @@
         <strong>📬 Omwonende-mailing</strong>
         <span>Print-kaart voor de buurt: "bij u in de buurt te koop"</span>
       </button>
+    </div>
+
+    <!-- woningpagina + QR + kijkerslijst -->
+    <div class="hub__wp is-verborgen" id="wpBlok">
+      <div class="hub__wp-kop">
+        <strong>🔗 Woningpagina &amp; QR</strong>
+        <span>Deelbare presentatie — kijkers laten naam + e-mail achter (voor bord, mailing en social)</span>
+      </div>
+      <div class="hub__wp-regel">
+        <input type="text" id="wpUrl" class="select" readonly>
+        <button class="knop knop--tweede" id="wpKopieer">Kopieer link</button>
+        <button class="knop knop--tweede" id="wpQr">Download QR</button>
+        <button class="knop knop--tweede" id="wpKijkers">Kijkerslijst</button>
+      </div>
+      <div class="hub__wp-kijkers is-verborgen" id="wpLijst"></div>
     </div>
 
     <div class="hub__overig">
@@ -329,6 +344,6 @@
 
 <canvas id="werkCanvas" hidden></canvas>
 <script src="data.js?v=1"></script>
-<script src="studio.js?v=28"></script>
+<script src="studio.js?v=29"></script>
 </body>
 </html>

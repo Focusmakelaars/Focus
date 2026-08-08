@@ -193,6 +193,17 @@ em{font-family:var(--font-serif);font-style:italic}
 .hub__kaart span{font-size:.78rem;color:var(--ink-soft);line-height:1.45}
 .hub__kaart:hover:not([disabled]){transform:translateY(-3px);box-shadow:0 20px 44px -20px rgba(241,93,34,.4)}
 .hub__kaart[disabled]{opacity:.45;cursor:not-allowed}
+.hub__wp{margin-top:2rem;background:var(--wit);border-radius:16px;padding:1.1rem 1.3rem 1.2rem;text-align:left;box-shadow:0 14px 34px -22px rgba(29,32,35,.4)}
+.hub__wp-kop strong{display:block;font-size:.95rem}
+.hub__wp-kop span{display:block;font-size:.78rem;color:var(--ink-soft);margin-top:.15rem}
+.hub__wp-regel{display:flex;gap:.5rem;margin-top:.8rem;flex-wrap:wrap}
+.hub__wp-regel input{flex:1;min-width:220px;font-size:.8rem;color:var(--ink-soft)}
+.hub__wp-regel .knop{white-space:nowrap}
+.hub__wp-kijkers{margin-top:.9rem}
+.hub__wp-kijkers table{width:100%;border-collapse:collapse;font-size:.8rem}
+.hub__wp-kijkers th{text-align:left;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--iris-bruin);padding:.3rem .4rem;border-bottom:1.5px solid var(--comfort-beige)}
+.hub__wp-kijkers td{padding:.4rem;border-bottom:1px solid rgba(223,209,187,.5)}
+.hub__wp-kijkers a{color:var(--warm-oranje)}
 .hub__overig{margin-top:2.4rem;display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;justify-content:center;align-items:center;font-size:.84rem;color:var(--ink-soft)}
 .hub__link{font-size:.84rem;font-weight:600;color:var(--warm-oranje);text-decoration:underline;text-underline-offset:3px}
 .hub__link:hover{color:var(--pupil-zwart)}

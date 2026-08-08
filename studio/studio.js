@@ -1576,6 +1576,53 @@ function wnKies(i) {
   rwKies(o);                                   // socials alvast vullen
   const rwSel = $("#rwSelect"); if (rwSel) rwSel.value = i;
   omZet(o);                                    // mailing alvast klaarzetten
+  wpToon(o);                                   // woningpagina-link + QR + kijkerslijst
+}
+
+/* ---------- woningpagina (deelbare presentatie + kijkersregistratie) ---------- */
+const WP_BASIS = "https://focusmakelaars.github.io/Focus/w/";
+const wpUrlVan = o => `${WP_BASIS}?w=${o.afdelingscode}-${o.objectcode}`;
+
+function wpToon(o) {
+  $("#wpBlok").classList.remove("is-verborgen");
+  $("#wpUrl").value = wpUrlVan(o);
+  $("#wpLijst").classList.add("is-verborgen");
+  $("#wpLijst").innerHTML = "";
+  $("#wpKijkers").textContent = "Kijkerslijst";
+}
+
+function wpInit() {
+  $("#wpKopieer").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText($("#wpUrl").value); } catch {}
+    flashHint($("#wpKopieer"), "Gekopieerd!", "Kopieer link");
+  });
+  $("#wpQr").addEventListener("click", async () => {
+    if (!gekozenWoning) return;
+    try {
+      const blob = await (await rwFetch(`/qr?data=${encodeURIComponent(wpUrlVan(gekozenWoning))}`)).blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `qr-${gekozenWoning.straat} ${gekozenWoning.huisnummer}.png`.replace(/\s+/g, "-").toLowerCase();
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    } catch { flashHint($("#wpQr"), "Mislukt — proxy?", "Download QR"); }
+  });
+  $("#wpKijkers").addEventListener("click", async () => {
+    if (!gekozenWoning) return;
+    const lijst = $("#wpLijst");
+    if (!lijst.classList.contains("is-verborgen")) { lijst.classList.add("is-verborgen"); return; }
+    try {
+      const r = await (await rwFetch(`/leads/${gekozenWoning.afdelingscode}/${gekozenWoning.objectcode}`)).json();
+      const leads = r.leads || [];
+      lijst.innerHTML = leads.length
+        ? `<table><tr><th>Wanneer</th><th>Naam</th><th>E-mail</th><th>Telefoon</th></tr>` +
+          leads.map(l => `<tr><td>${esc((l.tijd || "").replace("T", " · ").slice(0, 18))}</td><td>${esc(l.naam)}</td>` +
+            `<td><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></td><td>${esc(l.telefoon || "—")}</td></tr>`).join("") + `</table>`
+        : '<p class="hint hint--licht">Nog geen kijkers geregistreerd voor deze woning.</p>';
+      lijst.classList.remove("is-verborgen");
+      $("#wpKijkers").textContent = `Kijkerslijst (${leads.length})`;
+    } catch { lijst.innerHTML = '<p class="hint hint--licht">Kijkerslijst ophalen mislukte — draait de proxy?</p>'; lijst.classList.remove("is-verborgen"); }
+  });
 }
 
 function wnInit() {
@@ -1774,6 +1821,7 @@ function init() {
   rwInit();
   brInit();
   wnInit();
+  wpInit();
 }
 
 document.addEventListener("DOMContentLoaded", init);

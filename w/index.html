@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Woningpresentatie | Focus Makelaars</title>
+<meta name="description" content="Bekijk de volledige woningpresentatie van Focus Makelaars — foto's, het verhaal en alle kenmerken.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
+<link rel="stylesheet" href="pagina.css?v=1">
+</head>
+<body>
+
+<div class="shell">
+
+  <header class="top">
+    <a class="merk" href="https://www.focusmakelaars.nl">
+      <svg viewBox="0 0 252 252.37" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M142.8867.493v40.765c35.029,6.953,62.503,35.099,68.474,70.467h40.639C245.4327,54.129,200.1497,8.149,142.8867.493" fill="currentColor"/><path d="M0,111.725h40.639c6.192-36.662,35.481-65.571,72.344-71.152V0C53.897,6.05,6.718,52.834,0,111.725" fill="currentColor"/><path d="M40.8159,141.6289H.1259c7.129,58.426,54.099,104.723,112.857,110.74v-40.573c-36.53-5.532-65.619-33.975-72.167-70.167" fill="currentColor"/><path d="M142.8867,211.1107v40.764c56.936-7.611,102.017-53.113,108.988-110.246h-40.688c-6.316,34.904-33.597,62.593-68.3,69.482" fill="currentColor"/><path d="M156.4087,126.1845c0,16.794-13.615,30.408-30.409,30.408s-30.408-13.614-30.408-30.408,13.614-30.409,30.408-30.409,30.409,13.615,30.409,30.409" fill="currentColor"/></svg>
+      Focus <span class="serif">makelaars</span>
+    </a>
+    <span class="top__oog serif">met oog voor jou</span>
+  </header>
+
+  <!-- laden / fout -->
+  <section class="melding" id="wLaden">
+    <div class="melding__oog" id="wLaadOog"></div>
+    <p>Woning laden…</p>
+  </section>
+  <section class="melding is-verborgen" id="wFout">
+    <p><strong>De presentatie is nu even niet bereikbaar.</strong><br>
+    Probeer het over een paar minuten opnieuw — of bel ons gerust, we vertellen je graag alles over deze woning.</p>
+    <p class="melding__contact" id="wFoutContact"></p>
+  </section>
+
+  <!-- woning -->
+  <main class="woning is-verborgen" id="wInhoud">
+    <section class="hero">
+      <div class="hero__foto" id="wHeroFoto"></div>
+      <div class="hero__balk">
+        <div>
+          <span class="kicker" id="wStatus">Te koop</span>
+          <h1 id="wAdres"></h1>
+          <p class="hero__plaats serif" id="wPlaats"></p>
+        </div>
+        <div class="hero__prijs" id="wPrijs"></div>
+      </div>
+      <div class="hero__kern" id="wKern"></div>
+    </section>
+
+    <!-- registratie-poort -->
+    <section class="poort" id="wPoort">
+      <h2>Bekijk de volledige presentatie <span class="serif">— gratis.</span></h2>
+      <p>Laat je naam en e-mailadres achter en bekijk direct alle foto's, het verhaal en de kenmerken van deze woning.</p>
+      <form id="wForm">
+        <input type="text" id="wNaam" placeholder="Je naam" autocomplete="name" required>
+        <input type="email" id="wEmail" placeholder="Je e-mailadres" autocomplete="email" required>
+        <input type="tel" id="wTel" placeholder="Telefoon (niet verplicht)" autocomplete="tel">
+        <button class="knop" type="submit" id="wVerder">Bekijk de presentatie
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+      </form>
+      <p class="poort__privacy">We gebruiken je gegevens alleen om je over deze woning te informeren. Geen nieuwsbrieven, geen gedoe.</p>
+      <p class="poort__fout is-verborgen" id="wFormFout"></p>
+    </section>
+
+    <!-- volledige presentatie (na registratie) -->
+    <div class="vol is-verborgen" id="wVol">
+      <section class="blok" id="wVerhaalBlok">
+        <span class="kicker">Het verhaal</span>
+        <h2>Welkom <span class="serif">binnen.</span></h2>
+        <div class="verhaal" id="wVerhaal"></div>
+      </section>
+
+      <section class="blok">
+        <span class="kicker">De foto's</span>
+        <h2>Kijk gerust <span class="serif">rond.</span></h2>
+        <div class="galerij" id="wGalerij"></div>
+      </section>
+
+      <section class="blok">
+        <span class="kicker">De feiten</span>
+        <h2>Alles op een rij, <span class="serif">zwart op wit.</span></h2>
+        <div class="feiten" id="wFeiten"></div>
+      </section>
+
+      <section class="cta" id="wCta">
+        <h2>Zin om te komen kijken? <span class="serif">De koffie staat klaar.</span></h2>
+        <p id="wCtaTekst"></p>
+        <div class="cta__knoppen" id="wCtaKnoppen"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="voet">
+    <span id="wVoet">Focus Makelaars — met oog voor jou.</span>
+    <a href="../waardecheck/">Benieuwd wat jouw eigen woning waard is? Doe de gratis waardecheck &rarr;</a>
+  </footer>
+
+</div>
+
+<script src="../studio/data.js"></script>
+<script src="pagina.js?v=1"></script>
+</body>
+</html>
