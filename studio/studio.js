@@ -1257,7 +1257,7 @@ async function edKies(compactObj) {
 async function edPrint() {
   if (!ed) return;
   $("#brHint").textContent = "PDF-weergave openen…";
-  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=6")).text()]);
+  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=7")).text()]);
   edPrintModus = true;
   let paginasHTML;
   try { paginasHTML = ed.paginas.map((p, i) => edPaginaHTML(p, i + 1)).join(""); }
@@ -1507,7 +1507,7 @@ let omZetNr = 0; // race-guard: alleen de laatst gekozen woning mag de mailing v
 
 async function omZet(o) {
   const mijn = ++omZetNr;
-  om = { o, foto: null, laadt: true, logo: om.logo, qr: om.qr,
+  om = { o, foto: null, laadt: true, logo: om.logo, qr: om.qr, qrWB: om.qrWB,
          teksten: om.o && om.o.objectcode === o.objectcode ? om.teksten : {} };
   const mijnOm = om;
   $("#omStatus").textContent = `${o.straat} ${o.huisnummer}, ${o.plaats}`;
@@ -1523,6 +1523,7 @@ async function omZet(o) {
   } catch { mijnOm.woningQR = null; }
   mijnOm.logo = mijnOm.logo || await laadLogo();
   mijnOm.qr = mijnOm.qr || await brDataURL("qr-waardecheck.png");
+  mijnOm.qrWB = mijnOm.qrWB || await brDataURL("qr-waardebepaling.png"); // gratis waardebepaling (achterkant)
   mijnOm.laadt = false;
   if (mijn !== omZetNr) return;
   $("#omPrint").disabled = false;
@@ -1541,9 +1542,12 @@ function omHTML() {
     ? `€ ${Math.round(o.koopprijs).toLocaleString("nl-NL")} ${o.koopconditie === "VRIJ_OP_NAAM" ? "v.o.n." : "k.k."}` : "";
   const fotoInhoud = om.foto ? `<img src="${om.foto}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`
     : '<div style="position:absolute;inset:0;background:#DFD1BB"></div>';
+  // QR-chip op de foto (naar de woningpagina) — alleen bij "te koop"
+  const chip = soort === "tekoop" && om.woningQR
+    ? `<span class="m-qrchip"><img src="${om.woningQR}" alt=""><em>scan voor alles</em></span>` : "";
   return `
   <div class="mp mp--voor">
-    <div class="bslot" style="background:#DFD1BB">${fotoInhoud}</div>
+    <div class="bslot" style="background:#DFD1BB">${fotoInhoud}${chip}</div>
     <div class="onder">
       <span class="mkicker">${std.kicker}</span>
       <h1>${std.kop(esc(adres))}</h1>
@@ -1557,8 +1561,8 @@ function omHTML() {
     <div class="mkaart">
       <div class="t"><h3>Vragen? <span class="serif">Bel of mail ons.</span></h3>
         <p><strong>Focus Makelaars ${esc(vestNaam)}</strong><br>${esc(vest.telefoon)} · ${esc(vest.mail)}<br>${esc(vest.adres)}</p></div>
-      <div class="qr"><img src="${soort !== "verkocht" && om.woningQR ? om.woningQR : om.qr}" alt="QR">
-        <span>${soort !== "verkocht" && om.woningQR ? "Bekijk deze woning<br>online — scan mij" : "Gratis online<br>waardecheck"}</span></div>
+      <div class="qr"><img src="${om.qrWB || om.qr}" alt="QR">
+        <span>Plan een gratis<br>waardebepaling</span></div>
     </div>
     <div class="mvoet">Focus Makelaars — met oog voor jou. Liever geen post van ons? Laat het weten via ${esc(vest.mail)}.</div>
   </div>`;
@@ -1570,7 +1574,7 @@ function omRender() {
 }
 
 async function omPrintDoc() {
-  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=6")).text()]);
+  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=7")).text()]);
   return `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Omwonende-mailing</title>
     <style>${fonts}\n${css}\n@page{size:148mm 210mm;margin:0}html,body{margin:0;padding:0}[contenteditable]{outline:none}
     .btekst:empty::before{content:none!important}</style>

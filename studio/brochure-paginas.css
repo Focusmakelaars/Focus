@@ -252,6 +252,9 @@
 .mp--voor h1 { font-size: 19pt; font-weight: 700; line-height: 1.1; letter-spacing: -.01em; margin-top: 2.5mm; }
 .mp--voor h1 .serif { color: #B0836B; font-weight: 500; }
 .mp--voor .intro { margin-top: 3mm; font-size: 9.5pt; line-height: 1.55; color: #4b4a45; }
+.mp--voor .m-qrchip { position: absolute; right: 7mm; bottom: 7mm; background: #fff; border-radius: 3.5mm; padding: 2.4mm 2.4mm 1.6mm; display: flex; flex-direction: column; align-items: center; gap: .8mm; box-shadow: 0 3mm 8mm -3mm rgba(29,32,35,.5); }
+.mp--voor .m-qrchip img { width: 20mm; height: 20mm; display: block; }
+.mp--voor .m-qrchip em { font-style: normal; font-size: 6pt; font-weight: 600; color: #4b4a45; letter-spacing: .03em; }
 .mp--voor .mlogo { margin-top: auto; margin-bottom: 8mm; display: flex; justify-content: space-between; align-items: center; }
 .mp--voor .mlogo svg { height: 7.5mm; width: auto; color: #F15D22; }
 .mp--voor .mlogo span { font-size: 8pt; font-weight: 600; color: #B0836B; }

@@ -35,9 +35,8 @@ button, input { font: inherit; }
 
 /* top */
 .top { display: flex; align-items: center; justify-content: space-between; padding: .4rem 0 1.6rem; }
-.merk { display: flex; align-items: center; gap: .6rem; font-weight: 700; font-size: 1.15rem; color: var(--pupil-zwart); text-decoration: none; letter-spacing: -.01em; }
-.merk svg { width: 34px; height: 34px; color: var(--warm-oranje); }
-.merk .serif { color: var(--warm-oranje); font-weight: 500; margin-left: -.25rem; }
+.merk { display: flex; align-items: center; text-decoration: none; }
+.merk__logo { height: 34px; width: auto; display: block; }
 .top__oog { color: var(--iris-bruin); font-size: .95rem; }
 
 /* meldingen */
