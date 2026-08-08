@@ -1542,8 +1542,8 @@ function omHTML() {
     ? `€ ${Math.round(o.koopprijs).toLocaleString("nl-NL")} ${o.koopconditie === "VRIJ_OP_NAAM" ? "v.o.n." : "k.k."}` : "";
   const fotoInhoud = om.foto ? `<img src="${om.foto}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`
     : '<div style="position:absolute;inset:0;background:#DFD1BB"></div>';
-  // QR-chip op de foto (naar de woningpagina) — alleen bij "te koop"
-  const chip = soort === "tekoop" && om.woningQR
+  // QR-chip op de foto (naar de woningpagina) — bij "te koop" en "open huis"
+  const chip = (soort === "tekoop" || soort === "openhuis") && om.woningQR
     ? `<span class="m-qrchip"><img src="${om.woningQR}" alt=""><em>scan voor alles</em></span>` : "";
   return `
   <div class="mp mp--voor">
