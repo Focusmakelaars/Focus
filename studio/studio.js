@@ -2088,6 +2088,15 @@ function wnInit() {
 const FS_PARAMS = new URLSearchParams(location.search);
 const FS_EMBED = FS_PARAMS.get("embed") === "1";
 const FS_AM = parseInt(FS_PARAMS.get("am") || "", 10) || null;
+// vestiging=<naam>: de vestiging van de ingelogde makelaar is overal voorgeselecteerd
+const FS_VESTIGING = FS_PARAMS.get("vestiging");
+if (FS_VESTIGING && FOCUS.vestigingen[FS_VESTIGING]) state.vestiging = FS_VESTIGING;
+// naam=<makelaarsnaam>: e-mailhandtekening e.d. starten op het juiste teamlid
+const FS_NAAM = (FS_PARAMS.get("naam") || "").toLowerCase();
+if (FS_NAAM) {
+  const lid = FOCUS.team.find(l => l.naam.toLowerCase() === FS_NAAM);
+  if (lid) { state.teamlid = lid.id; state.vestiging = lid.vestiging; }
+}
 
 function fsDeepLink() {
   // na rwInit: eerst evt. de woning kiezen, dan pas naar de module-tab
@@ -2221,6 +2230,7 @@ function init() {
   // handtekening
   const st = $("#sigTeamlid");
   st.innerHTML = FOCUS.team.map(t => `<option value="${t.id}">${esc(t.naam)} — ${esc(t.vestiging)}</option>`).join("");
+  st.value = state.teamlid; // volgt naam=<makelaar> uit de dashboard-inbedding
   st.addEventListener("change", renderSig);
   $("#sigKopieer").addEventListener("click", kopieerSig);
   $("#sigHtmlKopieer").addEventListener("click", async () => {
