@@ -1731,6 +1731,7 @@ async function omZet(o) {
   if (mijn !== omZetNr) return;
   $("#omPrint").disabled = false;
   $("#omDruk").disabled = false;
+  $("#omBag").disabled = false;
   $("#omLeeg").classList.add("is-verborgen");
   $("#omCanvas").classList.remove("is-verborgen");
   omRender();
@@ -2051,6 +2052,25 @@ function wnInit() {
   $("#omAdressen").addEventListener("input", () => {
     const n = parseAdressen($("#omAdressen").value).length;
     $("#omAdresInfo").textContent = n ? `${n} adressen (na ontdubbeling) → ${n * 2} drukvellen` : "";
+  });
+  $("#omBag").addEventListener("click", async () => {
+    if (!om.o) return;
+    const straal = Math.min(Math.max(+$("#omStraal").value || 150, 25), 1000);
+    const maxn = Math.min(Math.max(+$("#omMax").value || 100, 1), 500);
+    $("#omBag").disabled = true;
+    $("#omAdresInfo").textContent = `Buurt-adressen ophalen uit de BAG (${straal} m)…`;
+    try {
+      const adres = `${om.o.straat} ${om.o.huisnummer}, ${om.o.plaats}`;
+      const eigen = `${om.o.straat} ${om.o.huisnummer}`;
+      const r = await (await rwFetch(`/buurtadressen?adres=${encodeURIComponent(adres)}&straal=${straal}&max=${maxn}&eigen=${encodeURIComponent(eigen)}`)).json();
+      const ad = r.adressen || [];
+      if (!ad.length) throw new Error("leeg");
+      $("#omAdressen").value = ad.map(a => `${a.straat}; ${a.pc}; ${a.plaats}`).join("\n");
+      $("#omAdresInfo").textContent = `${ad.length} woonadressen binnen ${straal} m (BAG, dichtstbij eerst) — controleer en pas gerust aan`;
+    } catch {
+      $("#omAdresInfo").textContent = "Buurt-adressen ophalen mislukte — controleer de straal of probeer opnieuw";
+    }
+    $("#omBag").disabled = false;
   });
 }
 

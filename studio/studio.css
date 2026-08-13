@@ -299,6 +299,10 @@ em{font-family:var(--font-serif);font-style:italic}
 .knop--tweede{background:transparent;color:var(--pupil-zwart);box-shadow:inset 0 0 0 2px rgba(29,32,35,.15)}
 .knop--tweede:hover{box-shadow:inset 0 0 0 2px var(--warm-oranje);color:var(--warm-oranje)}
 .knop--tweede + .knop--tweede{margin-top:.55rem}
+/* op de donkere actie-sectie: lichte variant (anders zwart-op-zwart) */
+.veld--acties .knop--tweede{color:var(--helder-beige);box-shadow:inset 0 0 0 2px rgba(247,243,235,.4);justify-content:center}
+.veld--acties .knop--tweede:hover{color:var(--focus-oranje);box-shadow:inset 0 0 0 2px var(--focus-oranje)}
+.knop:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
 .hint--licht{color:var(--ink-soft)}
 .codewrap{width:min(680px,92%);margin-bottom:2rem}
 .codewrap summary{cursor:pointer;font-weight:600;font-size:.9rem;color:var(--ink-soft)}
@@ -324,6 +328,13 @@ em{font-family:var(--font-serif);font-style:italic}
   .studio{overflow:hidden}
   .panel{min-height:0}
 }
+
+/* ---------- BAG-buurtadressen (mailing) ---------- */
+.bagrij{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:.6rem;font-size:.8rem;color:var(--ink-soft)}
+.bagrij label{display:inline-flex;align-items:center;gap:.35rem}
+.bagrij input{width:4.6rem;padding:.45rem .5rem}
+.bagrij .knop{flex:1;justify-content:center;white-space:nowrap}
+#omAdressen{font-size:.78rem;line-height:1.5;resize:vertical}
 
 /* ---------- sjabloonkeuze brochure ---------- */
 .ed-sjablonen{margin:auto;max-width:640px;text-align:center;padding:2rem 1rem}

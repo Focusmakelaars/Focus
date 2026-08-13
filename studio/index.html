@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
 <link rel="stylesheet" href="poster.css?v=6">
-<link rel="stylesheet" href="studio.css?v=16">
+<link rel="stylesheet" href="studio.css?v=17">
 <link rel="stylesheet" href="brochure-paginas.css?v=8">
 </head>
 <body>
@@ -308,6 +308,11 @@
     <section class="veld reveal" style="--d:3">
       <h2 class="veld__kop">Geadresseerde post</h2>
       <p class="uitleg">Plak adressen, één per regel: <em>straat huisnr; postcode; plaats</em> (of met naam ervoor: 4 kolommen). Handig in ja-ja-sticker-gebieden. Leeg = 1 blanco kaart.</p>
+      <div class="bagrij">
+        <label>straal <input type="number" id="omStraal" class="select" value="150" min="25" max="1000"> m</label>
+        <label>max <input type="number" id="omMax" class="select" value="100" min="1" max="500"> kaarten</label>
+        <button class="knop knop--tweede" id="omBag" disabled>🏘️ Genereer buurt-adressen (BAG)</button>
+      </div>
       <textarea id="omAdressen" class="select" rows="6" placeholder="Voorbeeldstraat 12; 5611 AB; Eindhoven&#10;Fam. Jansen; Voorbeeldstraat 14; 5611 AB; Eindhoven"></textarea>
       <p class="hint hint--licht" id="omAdresInfo"></p>
     </section>
@@ -387,6 +392,6 @@
 
 <canvas id="werkCanvas" hidden></canvas>
 <script src="data.js?v=1"></script>
-<script src="studio.js?v=35"></script>
+<script src="studio.js?v=36"></script>
 </body>
 </html>
