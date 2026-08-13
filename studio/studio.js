@@ -552,6 +552,7 @@ async function rwKies(o) {
   if (!o) return;
   const mijn = ++rwKiesNr;
   resetPoster();
+  swReset(o); // fotobibliotheek-knop tonen; cache van vorige woning opruimen
   bouwInputs(); render(); // oude woning meteen van het podium
   const adres = `${o.straat} ${o.huisnummer}`;
   const prijs = o.koopprijs
@@ -590,6 +591,70 @@ async function rwKies(o) {
     actief.fotoGloed = gloed;
     if (state.fotoOrigineel === actief.foto) { state.fotoGloed = gloed; render(); }
   }
+}
+
+/* ---------- fotobibliotheek voor social posts (kiezen uit woningfoto's) ---------- */
+let swCache = null; // { code, fotos: [{link, thumb?}] } — alleen de laatst gekozen woning
+
+function swReset(o) {
+  if (swCache && swCache.code !== o.objectcode) {
+    swCache.fotos.forEach(f => { if (f.thumb) URL.revokeObjectURL(f.thumb); });
+    swCache = null;
+    $("#swGrid").innerHTML = "";
+  }
+  $("#swBieb").classList.remove("is-verborgen");
+}
+
+async function swOpen() {
+  if (!gekozenWoning) return;
+  const grid = $("#swGrid");
+  $("#swModal").classList.remove("is-verborgen");
+  if (swCache && swCache.code === gekozenWoning.objectcode) return; // grid staat al klaar
+  grid.innerHTML = '<p class="hint hint--licht">Foto’s laden…</p>';
+  try {
+    const obj = await (await rwFetch(`/object/${gekozenWoning.afdelingscode}/${gekozenWoning.objectcode}`)).json();
+    const fotos = (obj.media || []).filter(m => ["HOOFDFOTO", "FOTO"].includes(m.soort) && m.vrijgave)
+      .sort((a, b) => (a.soort !== "HOOFDFOTO") - (b.soort !== "HOOFDFOTO") || (a.volgnummer || 99) - (b.volgnummer || 99));
+    if (!fotos.length) { grid.innerHTML = '<p class="hint hint--licht">Geen foto’s gevonden bij deze woning.</p>'; return; }
+    swCache = { code: gekozenWoning.objectcode, fotos };
+    grid.innerHTML = fotos.map((f, i) => `<button data-i="${i}" title="Kies deze foto"></button>`).join("");
+    await Promise.all(fotos.map(async (f, i) => {
+      try {
+        const blob = await (await rwFetch(`/foto?maat=thumb&url=${encodeURIComponent(f.link)}`)).blob();
+        f.thumb = URL.createObjectURL(blob);
+        const b = grid.querySelector(`button[data-i="${i}"]`);
+        if (b) b.innerHTML = `<img src="${f.thumb}" alt="">`;
+      } catch { /* thumb overslaan */ }
+    }));
+  } catch {
+    grid.innerHTML = '<p class="hint hint--licht">Foto’s laden mislukte — draait de proxy?</p>';
+  }
+}
+
+async function swKies(i) {
+  const actief = rwActief;
+  const f = swCache && swCache.fotos[i];
+  if (!f || !actief) return;
+  $("#swModal").classList.add("is-verborgen");
+  $("#rwHint").textContent = "Foto laden…";
+  try {
+    const blob = await (await rwFetch("/foto?url=" + encodeURIComponent(f.link))).blob();
+    const dataurl = await naarDataURL(blob);
+    if (rwActief !== actief) return; // intussen andere woning gekozen
+    actief.foto = dataurl; actief.fotoGloed = null;
+    state.fotoOrigineel = dataurl; state.fotoGloed = null; state.fotoIsUpload = true;
+    const drop = $("#dropzone");
+    drop.classList.add("heeft-foto");
+    drop.style.backgroundImage = `url(${dataurl})`;
+    $("#dropTekst").textContent = "Andere foto kiezen";
+    render();
+    $("#rwHint").textContent = "Foto uit de woningbibliotheek gekozen";
+    const gloed = await warmeGloed(dataurl);
+    if (rwActief === actief && actief.foto === dataurl) {
+      actief.fotoGloed = gloed;
+      if (state.fotoOrigineel === dataurl) { state.fotoGloed = gloed; render(); }
+    }
+  } catch { $("#rwHint").textContent = "Foto laden mislukte — probeer het nog eens"; }
 }
 
 /* ---------- brochure-editor ---------- */
@@ -1851,6 +1916,15 @@ function init() {
 
   $("#gloedToggle").addEventListener("change", e => { state.gloed = e.target.checked; render(); });
   $("#downloadBtn").addEventListener("click", downloadPNG);
+
+  // fotobibliotheek van de gekozen woning (naast uploaden)
+  $("#swBieb").addEventListener("click", swOpen);
+  $("#swSluit").addEventListener("click", () => $("#swModal").classList.add("is-verborgen"));
+  $("#swModal").addEventListener("click", e => { if (e.target === $("#swModal")) $("#swModal").classList.add("is-verborgen"); });
+  $("#swGrid").addEventListener("click", e => {
+    const b = e.target.closest("button[data-i]");
+    if (b) swKies(+b.dataset.i);
+  });
 
   // tabs
   $$(".tab").forEach(t => t.addEventListener("click", () => toonTab(t.dataset.tab)));

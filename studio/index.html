@@ -147,6 +147,7 @@
         <input type="file" id="fotoInput" accept="image/*" hidden>
         <span id="dropTekst">Sleep een woningfoto hierheen<br><em>of klik om te kiezen</em></span>
       </label>
+      <button class="knop knop--tweede is-verborgen" id="swBieb" style="margin-top:.6rem;width:100%">📷 Kies uit de woningfoto's</button>
       <label class="schakel">
         <input type="checkbox" id="gloedToggle">
         <span class="schakel__knop"></span>
@@ -179,6 +180,13 @@
       <div id="posterHost"><!-- poster --></div>
     </div>
   </section>
+  <!-- fotokiezer social (bibliotheek van de gekozen woning) -->
+  <div class="ed-modal is-verborgen" id="swModal">
+    <div class="ed-modal__kaart">
+      <div class="ed-modal__kop"><strong>Kies een foto van deze woning</strong><button id="swSluit" aria-label="Sluiten">&times;</button></div>
+      <div class="ed-modal__grid" id="swGrid"><p class="hint hint--licht">Foto's laden…</p></div>
+    </div>
+  </div>
 </main>
 
 <!-- ================= BROCHURE-EDITOR ================= -->
@@ -353,6 +361,6 @@
 
 <canvas id="werkCanvas" hidden></canvas>
 <script src="data.js?v=1"></script>
-<script src="studio.js?v=33"></script>
+<script src="studio.js?v=34"></script>
 </body>
 </html>
