@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Focus Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="../assets/logo/beeldmerk-warm-oranje.svg">
+<style>
+  @font-face { font-family: "Silka"; src: url("../assets/fonts/Silka-Regular.woff2") format("woff2"); font-weight: 400; }
+  @font-face { font-family: "Silka"; src: url("../assets/fonts/Silka-Bold.woff2") format("woff2"); font-weight: 700; }
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+         background: #F7F3EB; font-family: "Silka", system-ui, sans-serif; color: #1D2023; }
+  .kaart { background: #fff; border-radius: 22px; box-shadow: 0 2px 14px rgba(29,32,35,.08);
+           padding: 42px 46px; text-align: center; max-width: 420px; }
+  img { width: 190px; margin-bottom: 18px; }
+  h1 { font-size: 20px; margin: 0 0 8px; }
+  p { color: rgba(29,32,35,.6); font-size: 14px; line-height: 1.6; margin: 0; }
+  .stip { display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+          background: #F15D22; margin-right: 7px; animation: pols 1.2s infinite; }
+  @keyframes pols { 50% { opacity: .3; } }
+</style>
+</head>
+<body>
+<div class="kaart">
+  <img src="../assets/logo/logo-liggend-warm-oranje.svg" alt="Focus Makelaars">
+  <h1><span class="stip"></span>Dashboard openen...</h1>
+  <p id="melding">Je wordt doorgestuurd naar het Focus Dashboard.</p>
+</div>
+<script>
+(async () => {
+  try {
+    const r = await fetch("url.json?x=" + Date.now(), { cache: "no-store" });
+    const { url } = await r.json();
+    if (url) { location.replace(url.replace(/\/$/, "") + "/"); return; }
+    throw new Error("leeg");
+  } catch {
+    document.querySelector("h1").textContent = "Dashboard is nu niet bereikbaar";
+    document.getElementById("melding").textContent =
+      "De dashboard-computer lijkt uit te staan. Probeer het later opnieuw of bel Robbie.";
+  }
+})();
+</script>
+</body>
+</html>
