@@ -8,8 +8,8 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/logo/beeldmerk-warm-oranje.svg" type="image/svg+xml">
 <link rel="stylesheet" href="poster.css?v=6">
-<link rel="stylesheet" href="studio.css?v=15">
-<link rel="stylesheet" href="brochure-paginas.css?v=7">
+<link rel="stylesheet" href="studio.css?v=16">
+<link rel="stylesheet" href="brochure-paginas.css?v=8">
 </head>
 <body>
 
@@ -153,6 +153,11 @@
         <span class="schakel__knop"></span>
         Focus warme gloed <em>— het fotorecept uit het brandbook</em>
       </label>
+      <label class="schakel">
+        <input type="checkbox" id="qrToggle">
+        <span class="schakel__knop"></span>
+        QR naar de woningpagina op de foto <em>— alleen te koop &amp; open huis</em>
+      </label>
     </section>
 
     <section class="veld reveal" style="--d:3">
@@ -169,6 +174,8 @@
       <button class="knop knop--primair" id="downloadBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download PNG
+      </button>
+      <button class="knop knop--tweede" id="deelBtn" style="width:100%;margin-top:.5rem">📲 Direct delen (mobiel)
       </button>
       <p class="hint" id="downloadHint">1080&nbsp;px, klaar voor Instagram &amp; Facebook</p>
     </section>
@@ -211,9 +218,16 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         Print / opslaan als PDF
       </button>
+      <button class="knop knop--tweede" id="brDruk" disabled style="width:100%;margin-top:.5rem">🖨️ Drukklare PDF (drukker)</button>
       <p class="hint" id="brHint">Je werk wordt automatisch bewaard per woning</p>
     </section>
   </aside>
+
+  <div class="br-mobiel">
+    <p><strong>De brochure-editor werkt het fijnst op een groter scherm.</strong><br>
+    Open de Studio op een laptop of tablet — of ga toch verder op dit scherm.</p>
+    <button class="knop knop--tweede" id="brToch">Toch openen op dit scherm</button>
+  </div>
 
   <section class="podium podium--editor">
     <div class="ed-strip is-verborgen" id="edStrip"><!-- paginaminiaturen --></div>
@@ -232,6 +246,7 @@
         <button class="ed-knopje" id="edOmhoog" title="Pagina naar voren">&larr;</button>
         <button class="ed-knopje" id="edOmlaag" title="Pagina naar achteren">&rarr;</button>
         <button class="ed-knopje ed-knopje--rood" id="edVerwijder" title="Pagina verwijderen">&times;</button>
+        <button class="ed-knopje ed-knopje--breed" id="edSjabloonOpslaan" title="Deze pagina-opzet bewaren als team-sjabloon">Bewaar als sjabloon</button>
         <button class="ed-knopje ed-knopje--breed" id="edReset" title="Bewaard werk wissen en opnieuw beginnen">Begin opnieuw</button>
       </div>
       <div class="ed-canvas">
@@ -243,6 +258,11 @@
         <div id="edLaden" class="ed-laden is-verborgen">
           <span id="edLadenOog"></span>
           <p id="edLadenTekst">Woning laden…</p>
+        </div>
+        <div class="ed-sjablonen is-verborgen" id="edSjablonen">
+          <h3>Waarmee wil je <em>starten?</em></h3>
+          <p>Kies een opzet — daarna kun je alles nog aanpassen, en je eigen opzet bewaren als sjabloon.</p>
+          <div class="ed-sjablonen__grid" id="edSjablonenGrid"></div>
         </div>
         <div class="ed-schaal is-verborgen" id="edCanvas"><!-- actieve pagina --></div>
       </div>
@@ -285,12 +305,18 @@
       <h2 class="veld__kop">Vestiging</h2>
       <select id="omVestiging" class="select"></select>
     </section>
-    <section class="veld veld--acties reveal" style="--d:3">
-      <button class="knop knop--primair" id="omPrint" disabled>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        Print / opslaan als PDF
+    <section class="veld reveal" style="--d:3">
+      <h2 class="veld__kop">Geadresseerde post</h2>
+      <p class="uitleg">Plak adressen, één per regel: <em>straat huisnr; postcode; plaats</em> (of met naam ervoor: 4 kolommen). Handig in ja-ja-sticker-gebieden. Leeg = 1 blanco kaart.</p>
+      <textarea id="omAdressen" class="select" rows="6" placeholder="Voorbeeldstraat 12; 5611 AB; Eindhoven&#10;Fam. Jansen; Voorbeeldstraat 14; 5611 AB; Eindhoven"></textarea>
+      <p class="hint hint--licht" id="omAdresInfo"></p>
+    </section>
+    <section class="veld veld--acties reveal" style="--d:4">
+      <button class="knop knop--primair" id="omDruk" disabled>🖨️ Drukklare PDF (drukker)</button>
+      <button class="knop knop--tweede" id="omPrint" disabled style="width:100%;margin-top:.5rem">
+        Print / PDF (kantoorprinter)
       </button>
-      <p class="hint">A5, voor- en achterzijde — teksten zijn aanklikbaar en aanpasbaar</p>
+      <p class="hint">Liggend A5-briefkaart — teksten op de kaart zijn aanklikbaar en aanpasbaar</p>
     </section>
   </aside>
   <section class="podium podium--editor">
@@ -361,6 +387,6 @@
 
 <canvas id="werkCanvas" hidden></canvas>
 <script src="data.js?v=1"></script>
-<script src="studio.js?v=34"></script>
+<script src="studio.js?v=35"></script>
 </body>
 </html>

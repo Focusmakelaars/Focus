@@ -325,12 +325,47 @@ em{font-family:var(--font-serif);font-style:italic}
   .panel{min-height:0}
 }
 
+/* ---------- sjabloonkeuze brochure ---------- */
+.ed-sjablonen{margin:auto;max-width:640px;text-align:center;padding:2rem 1rem}
+.ed-sjablonen h3{font-size:1.5rem;font-weight:700;letter-spacing:-.01em}
+.ed-sjablonen h3 em{font-family:var(--font-serif);font-style:italic;color:var(--warm-oranje);font-weight:500}
+.ed-sjablonen>p{color:var(--ink-soft);font-size:.9rem;margin-top:.4rem}
+.ed-sjablonen__grid{margin-top:1.4rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem}
+.ed-sjabloon{position:relative;background:var(--wit);border-radius:16px;padding:1.1rem 1rem 1rem;text-align:left;box-shadow:0 14px 34px -24px rgba(29,32,35,.5);outline:2.5px solid transparent;transition:outline-color .2s,transform .15s}
+.ed-sjabloon:hover{outline-color:var(--warm-oranje);transform:translateY(-2px)}
+.ed-sjabloon strong{display:block;font-size:.95rem}
+.ed-sjabloon span{display:block;font-size:.76rem;color:var(--ink-soft);margin-top:.25rem;line-height:1.45}
+.ed-sjabloon em{display:block;font-style:normal;font-size:.7rem;font-weight:700;color:var(--iris-bruin);margin-top:.55rem}
+.ed-sjabloon__x{position:absolute;top:.5rem;right:.6rem;font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--helder-beige);display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:.9rem}
+.ed-sjabloon__x:hover{background:var(--warm-oranje);color:#fff}
+
 /* ---------- responsive ---------- */
+.br-mobiel{display:none}
 @media (max-width:960px){
-  .studio{grid-template-columns:1fr}
-  .panel{border-right:0;border-bottom:1.5px solid rgba(29,32,35,.08)}
-  .podium{padding:1.5rem;min-height:70vh}
-  .topbar{flex-wrap:wrap;gap:.8rem}
-  .tabs{order:3;width:100%;justify-content:center}
-  .topbar__site{margin-left:auto}
+  /* mobiel = natuurlijk pagina-scrollen, geen app-hoogtes (fix scrollbug hub) */
+  html,body{height:auto}
+  body{overflow-y:auto}
+  .studio{display:flex;flex-direction:column;min-height:auto;overflow:visible;grid-template-columns:1fr}
+  .studio--hub{overflow:visible;display:block}
+  .panel{max-height:none;overflow:visible;border-right:0;border-bottom:1.5px solid rgba(29,32,35,.08)}
+  .podium{padding:1.2rem;min-height:60vh}
+  .topbar{flex-wrap:wrap;gap:.6rem;padding:.7rem 1rem}
+  .tabs{order:3;width:100%;justify-content:flex-start;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tab{padding:.55rem 1rem;font-size:.85rem;white-space:nowrap}
+  .topbar__site{display:none}
+  .hub{padding:1.8rem 1rem 3rem}
+  .hub__kaarten{grid-template-columns:1fr}
+  .hub__wp-regel{flex-direction:column;align-items:stretch}
+  .hub__wp-regel input{min-width:0}
+  /* brochure-editor: desktop-first met nette melding + doorklik */
+  #tab-brochure .panel,#tab-brochure .podium--editor{display:none}
+  #tab-brochure .br-mobiel{display:flex;flex-direction:column;align-items:center;gap:1.2rem;text-align:center;padding:3.5rem 1.5rem;color:var(--ink-soft)}
+  #tab-brochure.toon-editor .panel{display:block}
+  #tab-brochure.toon-editor .podium--editor{display:flex}
+  #tab-brochure.toon-editor .br-mobiel{display:none}
+  .ed-schaal{transform:scale(.4);transform-origin:top left;height:480px}
+  .ed-schaal--spread{transform:scale(.22);height:280px}
+  .ed-strip{width:84px}
+  .ed-modal__kaart{padding:1rem}
+  .poort__kaart{margin:1rem}
 }

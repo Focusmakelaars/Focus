@@ -17,6 +17,7 @@ const state = {
   formaat: "f45",
   vestiging: "Helmond",
   gloed: false,
+  qrAan: false, // QR-chip op social posts: optioneel, standaard uit
   fotoOrigineel: null,   // data-URL zoals aangeleverd
   fotoGloed: null,       // data-URL met warme gloed
   fotoIsUpload: false,
@@ -186,7 +187,7 @@ const RENDER = {
     const toel = (v.toelichting || "").trim();
     return `<div class="p-pad">
       ${brandrow("var(--warm-oranje)")}
-      ${fotoBlok("p-rond" + (toel ? " p-photo--kort" : ""), state.woningQR)}
+      ${fotoBlok("p-rond" + (toel ? " p-photo--kort" : ""), state.qrAan ? state.woningQR : null)}
       <span class="p-kicker">${esc(v.kicker)}</span>
       <div class="p-straat" data-fit="46">${esc(v.straat)}</div>
       <div class="p-plaats serif">${esc(v.plaats)}</div>
@@ -217,7 +218,7 @@ const RENDER = {
       <div class="p-tijd">${esc(v.tijd)}</div>
       <div class="p-waar serif">${esc(v.waar)}</div>
       <span class="p-pill">Loop vrijblijvend binnen</span>
-      ${fotoBlok("", state.woningQR)}
+      ${fotoBlok("", state.qrAan ? state.woningQR : null)}
       ${bottomrow(tel)}
     </div>`;
   },
@@ -368,6 +369,23 @@ async function downloadPNG() {
   knop.classList.add("is-bezig");
   $("#downloadHint").textContent = "Bezig met renderen…";
   try {
+    const { blob, naam } = await maakPosterPNG();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = naam;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    $("#downloadHint").textContent = "Gedownload! Klaar om te posten.";
+  } catch (e) {
+    console.error(e);
+    $("#downloadHint").textContent = "Er ging iets mis — probeer opnieuw.";
+  }
+  knop.classList.remove("is-bezig");
+  setTimeout(() => { $("#downloadHint").textContent = "1080 px, klaar voor Instagram & Facebook"; }, 4000);
+}
+
+async function maakPosterPNG() {
+  {
     const poster = $("#poster");
     const h = FORMAAT_H[state.formaat];
     const [fonts, css] = await Promise.all([fontsAlsCSS(), posterCSSTekst()]);
@@ -394,15 +412,33 @@ async function downloadPNG() {
     ctx.drawImage(img, 0, 0, 1080, h);
 
     const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `focus-${state.template}-${state.formaat.replace("f", "")}.png`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    $("#downloadHint").textContent = "Gedownload! Klaar om te posten.";
+    return { blob, naam: `focus-${state.template}-${state.formaat.replace("f", "")}.png` };
+  }
+}
+
+/* Direct delen via het native deelmenu (mobiel → Instagram/Facebook-apps) */
+async function deelPNG() {
+  const knop = $("#deelBtn");
+  knop.classList.add("is-bezig");
+  $("#downloadHint").textContent = "Bezig met renderen…";
+  try {
+    const { blob, naam } = await maakPosterPNG();
+    const bestand = new File([blob], naam, { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [bestand] })) {
+      await navigator.share({ files: [bestand] });
+      $("#downloadHint").textContent = "Gedeeld!";
+    } else {
+      // desktop-fallback: gewoon downloaden
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = naam;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      $("#downloadHint").textContent = "Delen werkt op je telefoon — hier gedownload.";
+    }
   } catch (e) {
-    console.error(e);
-    $("#downloadHint").textContent = "Er ging iets mis — probeer opnieuw.";
+    if (e && e.name !== "AbortError") $("#downloadHint").textContent = "Delen lukte niet — probeer downloaden.";
+    else $("#downloadHint").textContent = "Delen geannuleerd.";
   }
   knop.classList.remove("is-bezig");
   setTimeout(() => { $("#downloadHint").textContent = "1080 px, klaar voor Instagram & Facebook"; }, 4000);
@@ -1086,48 +1122,114 @@ function edPaginaHTML(p, nr) {
   return `<div class="bp">${logo}</div>`;
 }
 
-function edStandaardPaginas(obj) {
-  /* Vaste 16-pagina-opzet (wens Robbie, 08-08): cover · doorloop-spread (p2-3, met
-     welkom + eerste deel aanbiedingstekst) · tekst boven+grote foto (vervolg tekst) ·
-     tekst+2 foto's+accent · quote+panorama · drieluik · kenmerken · 3× plattegrond ·
-     kadastraal+locatie · 2× lijst van zaken · Over Focus · achterkant.
-     Alle fotovakken liggend. */
-  const teksten = obj.teksten || {};
+/* ---------- brochure-sjablonen: 3 standaardopzetten + eigen sjablonen ---------- */
+const LAYOUT_SLOTS = { cover: 1, fotos2boven: 2, magazine: 1, tekstbovenfoto: 1, tekstfoto: 2,
+  sfeer: 3, drieluik: 3, raster: 6, vol: 1, bijzonder: 1, tekst3: 3, fototekst: 2,
+  spreadlinks: 1, verhaal: 2, driedingen: 3 };
+const TEKSTDRAGERS = ["spreadlinks", "fotos2boven", "tekstbovenfoto", "magazine", "verhaal"];
+
+const ED_STANDAARD_SJABLONEN = [
+  { naam: "Compleet", oms: "De vertrouwde opzet: spread, accenten, alles erop en eraan",
+    layouts: ["cover", "spreadlinks", "spreadrechts", "tekstbovenfoto", "tekstfoto", "sfeer", "drieluik",
+              "kenmerken", "plattegrond", "plattegrond", "plattegrond", "kaarten",
+              "lijstvanzaken", "lijstvanzaken", "overfocus", "contact"] },
+  { naam: "Magazine", oms: "Fotorijk en editorial: verhaal, drie dingen, de buurt",
+    layouts: ["cover", "spreadlinks", "spreadrechts", "magazine", "verhaal", "driedingen", "sfeer",
+              "drieluik", "raster", "kenmerken", "indeling", "buurt",
+              "lijstvanzaken", "lijstvanzaken", "overfocus", "contact"] },
+  { naam: "Compact", oms: "8 pagina's — kort en krachtig voor kleinere woningen",
+    layouts: ["cover", "spreadlinks", "spreadrechts", "tekstbovenfoto",
+              "kenmerken", "plattegrond", "lijstvanzaken", "contact"] }
+];
+
+function edBouwPaginas(layouts) {
+  /* Generieke bouwer: foto's op volgorde over de vakken, plattegronden naar
+     plattegrond-pagina's, aanbiedingstekst gesplitst over de eerste tekstdragers. */
+  const teksten = ed.obj.teksten || {};
   const tekst = teksten.a4Tekst || teksten.aanbiedingstekst || "";
-  // de spread-tekstkolom is smal: eerste alinea's daar, de rest loopt door op pagina 4
   let deel1 = "", deel2 = "";
   tekst.split(/\n\s*\n/).forEach(a => {
     if (deel1.length < 1100 && !deel2) deel1 += (deel1 ? "\n\n" : "") + a;
     else deel2 += (deel2 ? "\n\n" : "") + a;
   });
   const media = ed.media;
-  const foto = i => (media[i] ? { bron: "media", i } : undefined);
-  const paginas = [
-    { layout: "cover", fotos: { f1: foto(0) }, teksten: {} },                                                    // 1
-    { layout: "spreadlinks", fotos: { f1: foto(1) }, teksten: { kop: "Welkom binnen.", lopend: deel1 } },        // 2
-    { layout: "spreadrechts", fotos: {}, teksten: {} },                                                          // 3
-    { layout: "tekstbovenfoto", fotos: { f1: foto(2) }, teksten: { kop: "", lopend: deel2 } },                   // 4
-    { layout: "tekstfoto", fotos: { f1: foto(3), f2: foto(4) }, teksten: { kop: "", lopend: "", accent: "" } },  // 5
-    { layout: "sfeer", fotos: { f1: foto(5), f2: foto(6), f3: foto(7) }, teksten: { quote: "" } },               // 6
-    { layout: "drieluik", fotos: { f1: foto(8), f2: foto(9), f3: foto(10) }, teksten: { caption: "" } },         // 7
-    { layout: "kenmerken", fotos: {}, teksten: {} }                                                              // 8
-  ];
-  // p9-11: 3 plattegrond-pagina's — eerst de echte plattegronden uit Realworks, rest leeg
   const plats = media.map((m, i) => ({ m, i })).filter(x => x.m.soort === "PLATTEGROND");
-  for (let k = 0; k < 3; k++)
-    paginas.push({ layout: "plattegrond",
-      fotos: plats[k] ? { f1: { bron: "media", i: plats[k].i } } : {},
-      teksten: { kop: "Plattegrond" } });
-  // extra plattegronden (4e en verder) ook meenemen
-  for (let k = 3; k < plats.length; k++)
-    paginas.push({ layout: "plattegrond", fotos: { f1: { bron: "media", i: plats[k].i } }, teksten: { kop: "Plattegrond" } });
-  paginas.push({ layout: "kaarten", fotos: {}, teksten: {} });    // 12 kadastraal + locatie
-  // p13-14: lijst van zaken — minimaal 2, meer als de lijst dat vraagt
-  const lvzPaginas = Math.max(2, Math.ceil((ed.lvz || []).length / LVZ_PER_PAGINA));
-  for (let i = 0; i < lvzPaginas; i++) paginas.push({ layout: "lijstvanzaken", fotos: {}, teksten: {} });
-  paginas.push({ layout: "overfocus", fotos: {}, teksten: {} });  // 15
-  paginas.push({ layout: "contact", fotos: {}, teksten: {} });    // 16 achterkant
+  let fi = 0, pi = 0, welkom = 0;
+  const volgFoto = () => {
+    while (fi < media.length && media[fi].soort === "PLATTEGROND") fi++;
+    return media[fi] ? { bron: "media", i: fi++ } : undefined;
+  };
+  const paginas = layouts.map(l => {
+    const p = { layout: l, fotos: {}, teksten: {} };
+    if (l === "plattegrond") {
+      const x = plats[pi++];
+      if (x) p.fotos.f1 = { bron: "media", i: x.i };
+      p.teksten.kop = "Plattegrond";
+    } else {
+      const n = LAYOUT_SLOTS[l] || 0;
+      for (let k = 1; k <= n; k++) { const f = volgFoto(); if (f) p.fotos["f" + k] = f; }
+    }
+    if (TEKSTDRAGERS.includes(l) && welkom === 0) { p.teksten.kop = "Welkom binnen."; p.teksten.lopend = deel1; welkom = 1; }
+    else if (TEKSTDRAGERS.includes(l) && welkom === 1 && deel2) { p.teksten.lopend = deel2; welkom = 2; }
+    if (l === "driedingen" && !p.teksten.kop) p.teksten.kop = "Drie dingen die dit huis bijzonder maken.";
+    if (l === "indeling") p.teksten.kop = "Zo loop je erdoorheen.";
+    return p;
+  });
+  // extra échte plattegronden achter de laatste plattegrond-pagina
+  if (pi < plats.length && paginas.some(p => p.layout === "plattegrond")) {
+    const li = paginas.map(p => p.layout).lastIndexOf("plattegrond");
+    paginas.splice(li + 1, 0, ...plats.slice(pi).map(x =>
+      ({ layout: "plattegrond", fotos: { f1: { bron: "media", i: x.i } }, teksten: { kop: "Plattegrond" } })));
+  }
+  // extra lvz-pagina's als de lijst niet past
+  const nodig = Math.max(1, Math.ceil((ed.lvz || []).length / LVZ_PER_PAGINA));
+  const huidig = layouts.filter(l => l === "lijstvanzaken").length;
+  if (huidig && nodig > huidig) {
+    const li = paginas.map(p => p.layout).lastIndexOf("lijstvanzaken");
+    paginas.splice(li + 1, 0, ...Array.from({ length: nodig - huidig },
+      () => ({ layout: "lijstvanzaken", fotos: {}, teksten: {} })));
+  }
   return paginas;
+}
+
+function edToonUI() {
+  $("#edLaden").classList.add("is-verborgen");
+  $("#edSjablonen").classList.add("is-verborgen");
+  $("#edCanvas").classList.remove("is-verborgen");
+  $("#edStrip").classList.remove("is-verborgen");
+  $("#edToolbar").classList.remove("is-verborgen");
+  $("#edBladerL").classList.remove("is-verborgen");
+  $("#edBladerR").classList.remove("is-verborgen");
+  $("#brPrint").disabled = false;
+  $("#brDruk").disabled = false;
+}
+
+let eigenSjablonen = [];
+async function sjablonenLaad() {
+  try { eigenSjablonen = (await (await rwFetch("/sjablonen")).json()).sjablonen || []; }
+  catch { eigenSjablonen = []; }
+}
+
+function edSjablonenToon() {
+  $("#edLaden").classList.add("is-verborgen");
+  $("#edSjablonen").classList.remove("is-verborgen");
+  const kaart = (naam, oms, n, eigen) =>
+    `<button class="ed-sjabloon" data-naam="${esc(naam)}"${eigen ? ' data-eigen="1"' : ""}>
+       <strong>${esc(naam)}</strong><span>${esc(oms)}</span><em>${n} pagina's</em>
+       ${eigen ? '<i class="ed-sjabloon__x" title="Sjabloon verwijderen">&times;</i>' : ""}</button>`;
+  $("#edSjablonenGrid").innerHTML =
+    ED_STANDAARD_SJABLONEN.map(s => kaart(s.naam, s.oms, s.layouts.length, false)).join("") +
+    eigenSjablonen.map(s => kaart(s.naam, "Eigen sjabloon van het team", s.layouts.length, true)).join("");
+  $("#brStatus").textContent = "Kies een opzet om mee te starten";
+}
+
+function edStartMet(layouts) {
+  $("#edSjablonen").classList.add("is-verborgen");
+  ed.lvzOverrides = {};
+  ed.paginas = edBouwPaginas(layouts);
+  ed.actief = 0;
+  edToonUI();
+  edRender();
 }
 
 function edRenderStrip() {
@@ -1230,6 +1332,8 @@ async function edKies(compactObj) {
   const st = $("#brStatus");
   const laad = t => { st.textContent = t; $("#edLadenTekst").textContent = t; };
   $("#brPrint").disabled = true;
+  $("#brDruk").disabled = true;
+  $("#edSjablonen").classList.add("is-verborgen");
   $("#edLeeg").classList.add("is-verborgen");
   $("#edCanvas").classList.add("is-verborgen");
   $("#edStrip").classList.add("is-verborgen");
@@ -1281,16 +1385,15 @@ async function edKies(compactObj) {
     // eerder werk terugzetten of standaardopzet maken
     let bewaard = null;
     try { bewaard = JSON.parse(localStorage.getItem(`focus-brochure:${compactObj.afdelingscode}/${compactObj.objectcode}`)); } catch {}
-    // nooit stilzwijgend oud werk terugzetten: altijd vragen (verse standaardopzet is de norm)
+    // nooit stilzwijgend oud werk terugzetten: altijd vragen
+    let herstel = false;
     if (bewaard && bewaard.paginas && bewaard.paginas.length &&
-        confirm("Op dit apparaat staat eerder werk aan deze brochure.\n\nOK = verdergaan met dat werk\nAnnuleren = vers beginnen met de standaardopzet")) {
+        confirm("Op dit apparaat staat eerder werk aan deze brochure.\n\nOK = verdergaan met dat werk\nAnnuleren = vers beginnen met een opzet naar keuze")) {
       ed.paginas = bewaard.paginas;
       ed.lvzOverrides = bewaard.lvzOverrides || {};
       if (bewaard.vestiging && FOCUS.vestigingen[bewaard.vestiging]) $("#brVestiging").value = bewaard.vestiging;
       st.textContent = "Eerder werk aan deze brochure teruggezet";
-    } else {
-      ed.paginas = edStandaardPaginas(obj);
-      st.textContent = `${ed.media.length} foto's geladen — bouw je brochure`;
+      herstel = true;
     }
     // teksten-paneel
     const namen = { aanbiedingstekst: "Aanbiedingstekst", a4Tekst: "A4-tekst", flyertekst: "Flyertekst", aanbiedingstekstEngels: "Aanbiedingstekst (EN)" };
@@ -1301,15 +1404,15 @@ async function edKies(compactObj) {
       .join("") || '<p class="hint hint--licht">Geen teksten bij deze woning.</p>';
     $("#edTekstenVeld").classList.remove("is-verborgen");
 
-    $("#edLaden").classList.add("is-verborgen");
-    $("#edCanvas").classList.remove("is-verborgen");
-    $("#edStrip").classList.remove("is-verborgen");
-    $("#edToolbar").classList.remove("is-verborgen");
-    $("#edBladerL").classList.remove("is-verborgen");
-    $("#edBladerR").classList.remove("is-verborgen");
-    $("#brPrint").disabled = false;
-    ed.actief = 0;
-    edRender();
+    if (herstel) {
+      edToonUI();
+      ed.actief = 0;
+      edRender();
+    } else {
+      await sjablonenLaad();
+      if (mijn !== edKiesNr) return;
+      edSjablonenToon();
+    }
   } catch (e) {
     if (mijn !== edKiesNr) return; // een nieuwere laadactie beheert de UI al
     ed = null; edLaadCode = null;  // schone lei, zodat opnieuw proberen werkt
@@ -1322,7 +1425,7 @@ async function edKies(compactObj) {
 async function edPrint() {
   if (!ed) return;
   $("#brHint").textContent = "PDF-weergave openen…";
-  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=7")).text()]);
+  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=8")).text()]);
   edPrintModus = true;
   let paginasHTML;
   try { paginasHTML = ed.paginas.map((p, i) => edPaginaHTML(p, i + 1)).join(""); }
@@ -1405,15 +1508,50 @@ function brInit() {
     ed.actief = Math.min(ed.actief, ed.paginas.length - 1);
     edRender();
   });
-  $("#edReset").addEventListener("click", () => {
+  $("#edReset").addEventListener("click", async () => {
     if (!ed) return;
-    if (!confirm("Bewaard werk aan deze brochure wissen en opnieuw beginnen met de standaardopzet?")) return;
+    if (!confirm("Bewaard werk aan deze brochure wissen en opnieuw beginnen?")) return;
     try { localStorage.removeItem(edOpslagKey()); } catch {}
-    ed.lvzOverrides = {};
-    ed.paginas = edStandaardPaginas(ed.obj);
-    ed.actief = 0;
-    edRender();
-    $("#brStatus").textContent = "Verse start — standaardopzet opnieuw opgebouwd";
+    await sjablonenLaad();
+    $("#edCanvas").classList.add("is-verborgen");
+    $("#edStrip").classList.add("is-verborgen");
+    $("#edToolbar").classList.add("is-verborgen");
+    $("#edBladerL").classList.add("is-verborgen");
+    $("#edBladerR").classList.add("is-verborgen");
+    edSjablonenToon();
+  });
+
+  // sjabloonkeuze: kiezen, of eigen sjabloon verwijderen
+  $("#edSjablonenGrid").addEventListener("click", async e => {
+    if (!ed) return;
+    const x = e.target.closest(".ed-sjabloon__x");
+    const kaart = e.target.closest(".ed-sjabloon");
+    if (!kaart) return;
+    const naam = kaart.dataset.naam;
+    if (x) {
+      if (!confirm(`Sjabloon "${naam}" voor het hele team verwijderen?`)) return;
+      try {
+        await rwFetch("/sjabloon-verwijder", { method: "POST", headers: { "Content-Type": "application/json" },
+                                               body: JSON.stringify({ naam }) });
+      } catch {}
+      await sjablonenLaad();
+      edSjablonenToon();
+      return;
+    }
+    const s = ED_STANDAARD_SJABLONEN.find(t => t.naam === naam) || eigenSjablonen.find(t => t.naam === naam);
+    if (s) edStartMet(s.layouts);
+  });
+
+  // huidige pagina-opzet bewaren als team-sjabloon
+  $("#edSjabloonOpslaan").addEventListener("click", async () => {
+    if (!ed || !ed.paginas.length) return;
+    const naam = (prompt("Naam voor dit sjabloon (zichtbaar voor het hele team):") || "").trim();
+    if (!naam) return;
+    try {
+      await rwFetch("/sjabloon", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ naam, layouts: ed.paginas.map(p => p.layout) }) });
+      $("#brStatus").textContent = `Sjabloon "${naam}" bewaard — het team kan 'm nu kiezen`;
+    } catch { $("#brStatus").textContent = "Sjabloon bewaren mislukte — draait de proxy?"; }
   });
 
   // paginastrip: selecteren + toevoegen
@@ -1592,44 +1730,49 @@ async function omZet(o) {
   mijnOm.laadt = false;
   if (mijn !== omZetNr) return;
   $("#omPrint").disabled = false;
+  $("#omDruk").disabled = false;
   $("#omLeeg").classList.add("is-verborgen");
   $("#omCanvas").classList.remove("is-verborgen");
   omRender();
 }
 
-function omHTML() {
+function omHTML(adres) { // adres optioneel: {naam?, straat, pc, plaats} voor geadresseerde post
   const o = om.o, soort = $("#omSoort").value, std = OM_STANDAARD[soort];
   const t = om.teksten[soort] || {};
-  const adres = `${o.straat} ${o.huisnummer}`;
+  const wAdres = `${o.straat} ${o.huisnummer}`;
   const vestNaam = $("#omVestiging").value;
   const vest = FOCUS.vestigingen[vestNaam];
   const prijs = (soort !== "verkocht" && o.koopprijs)
     ? `€ ${Math.round(o.koopprijs).toLocaleString("nl-NL")} ${o.koopconditie === "VRIJ_OP_NAAM" ? "v.o.n." : "k.k."}` : "";
-  const fotoInhoud = om.foto ? `<img src="${om.foto}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`
+  const fotoInhoud = om.foto ? `<img src="${om.foto}" alt="">`
     : '<div style="position:absolute;inset:0;background:#DFD1BB"></div>';
-  // QR-chip op de foto (naar de woningpagina) — bij "te koop" en "open huis"
   const chip = (soort === "tekoop" || soort === "openhuis") && om.woningQR
     ? `<span class="m-qrchip"><img src="${om.woningQR}" alt=""><em>scan voor alles</em></span>` : "";
+  const adresblok = adres
+    ? `<div class="adresblok">${esc(adres.naam || "Aan de bewoners van")}<br><strong>${esc(adres.straat)}</strong><br>${esc(adres.pc)}&nbsp;&nbsp;${esc(adres.plaats.toUpperCase())}</div>`
+    : `<div class="adresblok"><span class="aanhef">Aan de bewoners van</span><br><strong>dit adres</strong><br><span class="aanhef">(adressen via "Geadresseerde post")</span></div>`;
   return `
   <div class="mp mp--voor">
-    <div class="bslot" style="background:#DFD1BB">${fotoInhoud}${chip}</div>
-    <div class="onder">
+    <div class="bslot">${fotoInhoud}</div>${chip}
+    <div class="voorband">
       <span class="mkicker">${std.kicker}</span>
-      <h1>${std.kop(esc(adres))}</h1>
-      <div class="intro btekst" contenteditable="true" data-om="intro">${esc(t.intro ?? std.intro)}</div>
+      <h1>${std.kop(esc(wAdres))}</h1>
       <div class="mlogo">${om.logo}<span>${esc(o.plaats)}${prijs ? " · " + prijs : ""}</span></div>
     </div>
   </div>
   <div class="mp mp--achter">
-    <h2>Met oog voor de buurt, <span class="serif">en voor u.</span></h2>
-    <div class="brief btekst" contenteditable="true" data-om="brief">${esc(t.brief ?? std.brief)}</div>
-    <div class="mkaart">
-      <div class="t"><h3>Vragen? <span class="serif">Bel of mail ons.</span></h3>
-        <p><strong>Focus Makelaars ${esc(vestNaam)}</strong><br>${esc(vest.telefoon)} · ${esc(vest.mail)}<br>${esc(vest.adres)}</p></div>
-      <div class="qr"><img src="${om.qrWB || om.qr}" alt="QR">
-        <span>Plan een gratis<br>waardebepaling</span></div>
+    <div class="links">
+      <h2>Met oog voor de buurt, <span class="serif">en voor u.</span></h2>
+      <div class="brief btekst" contenteditable="true" data-om="brief">${esc(t.brief ?? std.brief)}</div>
+      <div class="qr" style="margin-top:2.5mm"><img src="${om.qrWB || om.qr}" alt="QR">
+        <span><strong>Plan een gratis waardebepaling</strong><br>Scan de code of bel ${esc(vest.telefoon)}</span></div>
+      <div class="mvoetje">Focus Makelaars ${esc(vestNaam)} · ${esc(vest.adres)} · ${esc(vest.mail)} — met oog voor jou.<br>Liever geen post van ons? Laat het weten via ${esc(vest.mail)}.</div>
     </div>
-    <div class="mvoet">Focus Makelaars — met oog voor jou. Liever geen post van ons? Laat het weten via ${esc(vest.mail)}.</div>
+    <div class="scheiding"></div>
+    <div class="rechts">
+      <div class="postzegel">postzegel<br>niet nodig bij<br>partijenpost</div>
+      ${adresblok}
+    </div>
   </div>`;
 }
 
@@ -1639,9 +1782,9 @@ function omRender() {
 }
 
 async function omPrintDoc() {
-  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=7")).text()]);
+  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=8")).text()]);
   return `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Omwonende-mailing</title>
-    <style>${fonts}\n${css}\n@page{size:148mm 210mm;margin:0}html,body{margin:0;padding:0}[contenteditable]{outline:none}
+    <style>${fonts}\n${css}\n@page{size:210mm 148mm;margin:0}html,body{margin:0;padding:0}[contenteditable]{outline:none}
     .btekst:empty::before{content:none!important}</style>
     </head><body>${omHTML().replace(/ contenteditable="true"/g, "")}</body></html>`;
 }
@@ -1652,6 +1795,91 @@ async function omPrint() {
   const doc = await omPrintDoc();
   const w = window.open(URL.createObjectURL(new Blob([doc], { type: "text/html" })), "_blank");
   if (w) setTimeout(() => w.print(), 1000);
+}
+
+/* ---------- drukklare output: 3mm afloop + snijtekens + slugregel (norm: de wikkelfolder) ---------- */
+const DRUK_AFLOOP = 3, DRUK_SLUG = 7; // mm
+
+function drukCSS(nettoW, nettoH) {
+  const a = DRUK_AFLOOP, s = DRUK_SLUG, bw = nettoW + 2 * (a + s), bh = nettoH + 2 * (a + s);
+  const schaal = Math.max((nettoW + 2 * a) / nettoW, (nettoH + 2 * a) / nettoH).toFixed(5);
+  return `@page{size:${bw}mm ${bh}mm;margin:0}html,body{margin:0;padding:0}
+  .vel{position:relative;width:${bw}mm;height:${bh}mm;overflow:hidden;page-break-after:always;background:#fff}
+  .vel__bleed{position:absolute;left:${s}mm;top:${s}mm;width:${nettoW + 2 * a}mm;height:${nettoH + 2 * a}mm;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .vel__schaal{flex:none;transform:scale(${schaal})}
+  .snij{position:absolute;background:#000}
+  .snij--h{height:.3mm;width:${s - 2}mm}
+  .snij--v{width:.3mm;height:${s - 2}mm}
+  .vel__slug{position:absolute;left:${s}mm;bottom:1.6mm;font:6pt/1 sans-serif;color:#000}
+  .bp,.mp{page-break-after:auto!important}`;
+}
+
+function drukVel(inhoud, nettoW, nettoH, slug) {
+  const a = DRUK_AFLOOP, s = DRUK_SLUG, W = nettoW + 2 * (a + s), H = nettoH + 2 * (a + s);
+  const T = s + a, B = H - s - a, L = s + a, R = W - s - a;
+  const marks =
+    `<span class="snij snij--h" style="left:0;top:${T}mm"></span><span class="snij snij--h" style="left:0;top:${B}mm"></span>` +
+    `<span class="snij snij--h" style="right:0;top:${T}mm"></span><span class="snij snij--h" style="right:0;top:${B}mm"></span>` +
+    `<span class="snij snij--v" style="top:0;left:${L}mm"></span><span class="snij snij--v" style="top:0;left:${R}mm"></span>` +
+    `<span class="snij snij--v" style="bottom:0;left:${L}mm"></span><span class="snij snij--v" style="bottom:0;left:${R}mm"></span>`;
+  return `<div class="vel"><div class="vel__bleed"><div class="vel__schaal">${inhoud}</div></div>${marks}<span class="vel__slug">${esc(slug)}</span></div>`;
+}
+
+function drukDatum() { const d = new Date(); return `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`; }
+
+function drukOpen(titel, extraCSS, vellen, fonts, paginaCSS, hintEl, okTekst) {
+  const doc = `<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>${esc(titel)}</title>
+    <style>${fonts}\n${paginaCSS}\n${extraCSS}
+    .bslot-leeg{display:none!important}.vervolg{display:none!important}[contenteditable]{outline:none}
+    .btekst:empty::before{content:none!important}</style></head>
+    <body>${vellen.replace(/ contenteditable="true"/g, "")}
+    <script>addEventListener("load",()=>setTimeout(()=>print(),900))<\/script></body></html>`;
+  const w = window.open(URL.createObjectURL(new Blob([doc], { type: "text/html" })), "_blank");
+  hintEl.textContent = w ? okTekst : "Pop-up geblokkeerd — sta pop-ups toe en probeer opnieuw";
+}
+
+async function edDruk() {
+  if (!ed) return;
+  $("#brHint").textContent = "Drukklare PDF maken…";
+  const [fonts, paginaCSS] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=8")).text()]);
+  const datum = drukDatum();
+  const naam = `Brochure_${(ed.compact.straat + "-" + ed.compact.huisnummer).replace(/\s+/g, "-")}_${datum}`;
+  edPrintModus = true;
+  let vellen;
+  try { vellen = ed.paginas.map((p, i) => drukVel(edPaginaHTML(p, i + 1), 210, 297, `${naam} · p${i + 1} · ${datum}`)).join(""); }
+  finally { edPrintModus = false; }
+  drukOpen(naam, drukCSS(210, 297), vellen, fonts, paginaCSS, $("#brHint"),
+    "Drukklaar: 3mm afloop + snijtekens — kies 'Opslaan als PDF'");
+}
+
+function parseAdressen(txt) {
+  const uit = [], gezien = new Set();
+  (txt || "").split(/\r?\n/).forEach(r => {
+    const k = r.split(/[;\t]/).map(x => x.trim()).filter(Boolean);
+    if (k.length < 3) return;
+    const a = k.length >= 4 ? { naam: k[0], straat: k[1], pc: k[2], plaats: k[3] }
+                            : { straat: k[0], pc: k[1], plaats: k[2] };
+    const sleutel = (a.straat + a.pc).toLowerCase().replace(/\s+/g, "");
+    if (!gezien.has(sleutel)) { gezien.add(sleutel); uit.push(a); }
+  });
+  return uit;
+}
+
+async function omDruk() {
+  if (!om.o) return;
+  const adressen = parseAdressen($("#omAdressen").value);
+  const [fonts, css] = await Promise.all([fontsAlsCSS(), (await fetch("brochure-paginas.css?v=8")).text()]);
+  const datum = drukDatum();
+  const naam = `Mailing_${(om.o.straat + "-" + om.o.huisnummer).replace(/\s+/g, "-")}_${datum}`;
+  const setjes = adressen.length ? adressen : [null];
+  const bak = document.createElement("div");
+  const vellen = setjes.map((a, i) => {
+    bak.innerHTML = omHTML(a);
+    return [...bak.children].map((el, k) =>
+      drukVel(el.outerHTML, 210, 148, `${naam} · kaart ${i + 1} ${k === 0 ? "voor" : "achter"} · ${datum}`)).join("");
+  }).join("");
+  drukOpen(naam, drukCSS(210, 148), vellen, fonts, css, $("#omAdresInfo"),
+    adressen.length ? `${adressen.length} adressen → ${adressen.length * 2} vellen, drukklaar` : "1 blanco kaart (voor + achter), drukklaar");
 }
 
 function wnKies(i) {
@@ -1818,6 +2046,12 @@ function wnInit() {
     (om.teksten[soort] = om.teksten[soort] || {})[el.dataset.om] = el.innerText;
   });
   $("#omPrint").addEventListener("click", omPrint);
+  $("#omDruk").addEventListener("click", omDruk);
+  $("#brDruk").addEventListener("click", edDruk);
+  $("#omAdressen").addEventListener("input", () => {
+    const n = parseAdressen($("#omAdressen").value).length;
+    $("#omAdresInfo").textContent = n ? `${n} adressen (na ontdubbeling) → ${n * 2} drukvellen` : "";
+  });
 }
 
 /* ---------- toegangspoort ---------- */
@@ -1915,7 +2149,10 @@ function init() {
   }
 
   $("#gloedToggle").addEventListener("change", e => { state.gloed = e.target.checked; render(); });
+  $("#qrToggle").addEventListener("change", e => { state.qrAan = e.target.checked; render(); });
   $("#downloadBtn").addEventListener("click", downloadPNG);
+  $("#deelBtn").addEventListener("click", deelPNG);
+  $("#brToch").addEventListener("click", () => $("#tab-brochure").classList.add("toon-editor"));
 
   // fotobibliotheek van de gekozen woning (naast uploaden)
   $("#swBieb").addEventListener("click", swOpen);

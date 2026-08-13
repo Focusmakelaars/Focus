@@ -241,38 +241,39 @@
 .bp--overfocus .foto { margin: 7mm -14mm 0; height: 74mm; overflow: hidden; }
 .bp--overfocus .foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* ============ OMWONENDE-MAILING (A5, voor + achter) ============ */
-.mp { box-sizing: border-box; width: 148mm; height: 210mm; position: relative; overflow: hidden; background: var(--helder-beige, #F7F3EB); font-family: "Silka", sans-serif; color: #1D2023; page-break-after: always; }
+/* ============ OMWONENDE-MAILING (A5 LIGGEND, briefkaart voor + achter) ============ */
+.mp { box-sizing: border-box; width: 210mm; height: 148mm; position: relative; overflow: hidden; background: var(--helder-beige, #F7F3EB); font-family: "Silka", sans-serif; color: #1D2023; page-break-after: always; }
 .mp * { box-sizing: border-box; }
 .mp .serif { font-family: "STIX Two Text", Georgia, serif; font-style: italic; }
-.mp--voor .bslot { position: absolute; inset: 0 0 auto 0; height: 108mm; }
-.mp--voor .onder { position: absolute; top: 108mm; left: 0; right: 0; bottom: 0; padding: 8mm 11mm 0; display: flex; flex-direction: column; }
-.mp--voor .mkicker { display: inline-flex; align-items: center; gap: 2.4mm; font-size: 8pt; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: #F15D22; }
-.mp--voor .mkicker::before { content: ""; width: 8mm; height: .6mm; background: #F15D22; border-radius: 1mm; }
-.mp--voor h1 { font-size: 19pt; font-weight: 700; line-height: 1.1; letter-spacing: -.01em; margin-top: 2.5mm; }
-.mp--voor h1 .serif { color: #B0836B; font-weight: 500; }
-.mp--voor .intro { margin-top: 3mm; font-size: 9.5pt; line-height: 1.55; color: #4b4a45; }
-.mp--voor .m-qrchip { position: absolute; right: 7mm; bottom: 7mm; background: #fff; border-radius: 3.5mm; padding: 2.4mm 2.4mm 1.6mm; display: flex; flex-direction: column; align-items: center; gap: .8mm; box-shadow: 0 3mm 8mm -3mm rgba(29,32,35,.5); }
-.mp--voor .m-qrchip img { width: 20mm; height: 20mm; display: block; }
+/* VOORKANT: paginavullende foto + band onderaan */
+.mp--voor .bslot { position: absolute; inset: 0; }
+.mp--voor .bslot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mp--voor .voorband { position: absolute; left: 0; right: 0; bottom: 0; padding: 16mm 10mm 7mm; background: linear-gradient(180deg, rgba(29,32,35,0), rgba(29,32,35,.72)); color: #fff; }
+.mp--voor .mkicker { display: inline-flex; align-items: center; gap: 2.4mm; font-size: 8pt; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: #F6871F; }
+.mp--voor .mkicker::before { content: ""; width: 8mm; height: .6mm; background: #F6871F; border-radius: 1mm; }
+.mp--voor h1 { font-size: 20pt; font-weight: 700; line-height: 1.1; letter-spacing: -.01em; margin-top: 2mm; }
+.mp--voor h1 .serif { color: #F6871F; font-weight: 500; }
+.mp--voor .mlogo { margin-top: 3.5mm; display: flex; justify-content: space-between; align-items: center; }
+.mp--voor .mlogo svg { height: 7mm; width: auto; color: #fff; }
+.mp--voor .mlogo span { font-size: 8pt; font-weight: 600; color: rgba(255,255,255,.85); }
+.mp--voor .m-qrchip { position: absolute; right: 7mm; top: 7mm; background: #fff; border-radius: 3.5mm; padding: 2.4mm 2.4mm 1.6mm; display: flex; flex-direction: column; align-items: center; gap: .8mm; box-shadow: 0 3mm 8mm -3mm rgba(29,32,35,.5); }
+.mp--voor .m-qrchip img { width: 19mm; height: 19mm; display: block; }
 .mp--voor .m-qrchip em { font-style: normal; font-size: 6pt; font-weight: 600; color: #4b4a45; letter-spacing: .03em; }
-.mp--voor .mlogo { margin-top: auto; margin-bottom: 8mm; display: flex; justify-content: space-between; align-items: center; }
-.mp--voor .mlogo svg { height: 7.5mm; width: auto; color: #F15D22; }
-.mp--voor .mlogo span { font-size: 8pt; font-weight: 600; color: #B0836B; }
-.mp--achter { padding: 12mm 11mm 0; display: flex; flex-direction: column; }
-.mp--achter h2 { font-size: 14.5pt; font-weight: 700; line-height: 1.2; }
+/* ACHTERKANT: briefkaartindeling — boodschap links, adres + postzegel rechts */
+.mp--achter { padding: 10mm; display: grid; grid-template-columns: 1fr 10mm 74mm; }
+.mp--achter .links { display: flex; flex-direction: column; min-width: 0; }
+.mp--achter h2 { font-size: 13.5pt; font-weight: 700; line-height: 1.2; }
 .mp--achter h2 .serif { color: #B0836B; font-weight: 500; }
-.mp--achter .brief { margin-top: 4mm; font-size: 9.5pt; line-height: 1.65; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; }
-.mp--achter .mkaart { background: #1D2023; color: #fff; border-radius: 4mm; padding: 5.5mm 6mm; display: flex; align-items: center; gap: 6mm; position: relative; overflow: hidden; }
-.mp--achter .mkaart::after { content: ""; position: absolute; width: 55mm; height: 55mm; border-radius: 50%; border: 1.2px solid rgba(246,135,31,.3); right: -22mm; top: -22mm; }
-.mp--achter .mkaart .t { flex: 1; }
-.mp--achter .mkaart h3 { font-size: 11pt; font-weight: 700; }
-.mp--achter .mkaart h3 .serif { color: #F6871F; font-weight: 500; }
-.mp--achter .mkaart p { margin-top: 2mm; font-size: 8pt; color: #DFD1BB; line-height: 1.6; }
-.mp--achter .mkaart p strong { color: #fff; }
-.mp--achter .mkaart .qr { position: relative; z-index: 1; text-align: center; }
-.mp--achter .mkaart .qr img { width: 21mm; height: 21mm; background: #fff; padding: 1.4mm; border-radius: 2mm; display: block; }
-.mp--achter .mkaart .qr span { display: block; margin-top: 1.2mm; font-size: 6pt; color: #DFD1BB; }
-.mp--achter .mvoet { margin: 5mm -11mm 0; padding: 3.2mm 11mm 4mm; background: #DFD1BB; font-size: 6.4pt; color: #4b4a45; line-height: 1.5; }
+.mp--achter .brief { margin-top: 3mm; font-size: 8.6pt; line-height: 1.6; color: #4b4a45; white-space: pre-line; flex: 1; overflow: hidden; }
+.mp--achter .mvoetje { margin-top: 2.5mm; font-size: 6.6pt; color: #B0836B; line-height: 1.5; }
+.mp--achter .scheiding { border-left: .35mm solid #DFD1BB; margin: 2mm 0; justify-self: center; }
+.mp--achter .rechts { display: flex; flex-direction: column; }
+.mp--achter .postzegel { align-self: flex-end; width: 20mm; height: 24mm; border: .35mm dashed #B0836B; border-radius: 1.5mm; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 5.5pt; color: #B0836B; letter-spacing: .06em; text-transform: uppercase; padding: 1mm; }
+.mp--achter .adresblok { margin-top: auto; margin-bottom: 16mm; font-size: 10.5pt; line-height: 1.7; }
+.mp--achter .adresblok .aanhef { color: #4b4a45; }
+.mp--achter .qr { display: flex; align-items: center; gap: 3mm; }
+.mp--achter .qr img { width: 17mm; height: 17mm; background: #fff; padding: 1.2mm; border-radius: 2mm; display: block; }
+.mp--achter .qr span { font-size: 7pt; color: #4b4a45; line-height: 1.45; }
 
 /* ---------- layout: contact (vast) ---------- */
 .bp--contact .foto { position: absolute; inset: 0 0 auto 0; height: 150mm; overflow: hidden; }
