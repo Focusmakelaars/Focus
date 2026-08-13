@@ -536,6 +536,10 @@ async function rwInit() {
   try {
     if (!await rwVerbind()) return;
     rwObjecten = (await (await rwFetch("/objecten")).json()).objecten || [];
+    if (FS_AM) {
+      // ingebed per makelaar: alleen de woningen waar hij accountmanager van is
+      rwObjecten = rwObjecten.filter(o => o.accountmanager === FS_AM);
+    }
     if (!rwObjecten.length) return;
     const sel = $("#rwSelect");
     rwObjecten.forEach((o, i) => {
@@ -551,6 +555,7 @@ async function rwInit() {
     // hub en brochure-kiezer nu pas vullen — geen race met de (tragere) tunnel
     if (wnVulFn) wnVulFn();
     if (brVulFn) brVulFn();
+    fsDeepLink(); // dashboard-inbedding: evt. woning + module uit de URL
   }
 }
 
@@ -2074,6 +2079,27 @@ function wnInit() {
   });
 }
 
+/* ---------- inbedding in het Focus Dashboard ---------- */
+// Het dashboard laadt de Studio in een iframe met URL-parameters:
+//   embed=1              geen wachtwoordpoort (dashboard heeft eigen login)
+//   am=<relatieId>       alleen woningen van deze accountmanager tonen
+//   module=<tabnaam>     direct naar social/brochure/mailing/handtekening
+//   woning=<objectcode>  die woning direct kiezen (via de hub-flow)
+const FS_PARAMS = new URLSearchParams(location.search);
+const FS_EMBED = FS_PARAMS.get("embed") === "1";
+const FS_AM = parseInt(FS_PARAMS.get("am") || "", 10) || null;
+
+function fsDeepLink() {
+  // na rwInit: eerst evt. de woning kiezen, dan pas naar de module-tab
+  const code = FS_PARAMS.get("woning");
+  if (code && rwObjecten.length) {
+    const i = rwObjecten.findIndex(o => o.objectcode === code);
+    if (i >= 0) { try { wnKies(i); } catch {} }
+  }
+  const module = FS_PARAMS.get("module");
+  if (module && $(`.tab[data-tab="${module}"]`)) toonTab(module);
+}
+
 /* ---------- toegangspoort ---------- */
 const POORT_HASH = "8c2574892063f995fdf756bce07f46c1a5193e54cd52837ed91e32008ccf41ac";
 
@@ -2084,6 +2110,12 @@ async function sha256hex(tekst) {
 
 function poortInit() {
   const poort = $("#poort");
+  if (FS_EMBED) {
+    // ingebed in het Focus Dashboard: daar is al ingelogd, dus geen extra poort
+    poort.classList.add("is-verborgen");
+    document.body.classList.add("is-embed");
+    return;
+  }
   $("#poortOog").innerHTML = beeldmerkSVG();
   try {
     if (localStorage.getItem("fs-toegang") === POORT_HASH) {
