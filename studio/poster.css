@@ -249,3 +249,66 @@
 .t-markt .p-pad-strip svg { height: 100%; width: auto; display: block; }
 .t-markt .p-bron { margin-top: 28px; font-size: 24px; letter-spacing: .14em; text-transform: uppercase; opacity: .55; font-weight: 500; }
 .t-markt .p-bottom { margin-top: 40px; border-top: 2px solid rgba(29,32,35,.14); padding-top: 34px; }
+
+/* ============================================================
+   T7/T8/T9 — DRIE POSTS OM NIEUWE KLANTEN TE VINDEN (15-08-2026)
+
+   Ze erven de opzet van de marktupdate: één groot cijfer dat het werk doet,
+   daaronder de duiding. Alleen wat afwijkt staat hier.
+   ============================================================ */
+.t-waarde .p-kicker, .t-resultaat .p-kicker { margin-top: 80px; }
+.t-waarde.f11 .p-kicker, .t-resultaat.f11 .p-kicker { margin-top: 48px; }
+.t-waarde .p-cijfer, .t-resultaat .p-cijfer {
+  margin-top: 30px;
+  font-size: 250px; font-weight: 900; line-height: .95; letter-spacing: -0.03em;
+  color: var(--warm-oranje);
+}
+.t-waarde.f11 .p-cijfer, .t-resultaat.f11 .p-cijfer { font-size: 200px; }
+.t-waarde .p-cijferlabel, .t-resultaat .p-cijferlabel {
+  margin-top: 20px; font-size: 52px; font-weight: 700; letter-spacing: -0.01em; max-width: 16em;
+}
+.t-waarde .p-duiding, .t-resultaat .p-duiding, .t-rente .p-duiding {
+  margin-top: 34px; font-size: 42px; line-height: 1.32; color: var(--iris-bruin); max-width: 18em;
+}
+.t-waarde .p-bron, .t-rente .p-klein {
+  font-size: 24px; letter-spacing: .14em; text-transform: uppercase; opacity: .55; font-weight: 500;
+}
+.t-waarde .p-bron { margin-top: 26px; }
+.t-waarde .p-bottom, .t-rente .p-bottom, .t-resultaat .p-bottom {
+  margin-top: 40px; border-top: 2px solid rgba(29,32,35,.14); padding-top: 34px;
+}
+
+/* de QR staat naast een korte aansporing — samen één blok, zodat hij niet
+   als los plaatje in de hoek zweeft */
+.t-waarde .p-qrrow {
+  margin-top: auto; display: flex; align-items: center; gap: 28px;
+  background: var(--helder-beige); border-radius: 28px; padding: 26px 32px;
+}
+.t-waarde .p-qr { width: 150px; height: 150px; display: block; border-radius: 12px; }
+.t-waarde .p-qrtekst { font-size: 34px; font-weight: 700; line-height: 1.25; }
+
+/* rentekorting: twee cijfers naast elkaar — de stijging én wat dat met de
+   verhouding lening/waarde doet. Dat tweede getal is het hele punt. */
+.t-rente .p-kicker { margin-top: 72px; }
+.t-rente.f11 .p-kicker { margin-top: 44px; }
+.t-rente .p-tweeluik {
+  margin-top: 34px; display: flex; gap: 56px; align-items: flex-start;
+}
+.t-rente .p-tweeluik > div { flex: 1; }
+.t-rente .p-cijfer--klein {
+  font-size: 150px; font-weight: 900; line-height: .95; letter-spacing: -0.03em;
+  color: var(--warm-oranje);
+}
+.t-rente.f11 .p-cijfer--klein { font-size: 124px; }
+.t-rente .p-tweeluik-label {
+  margin-top: 12px; font-size: 34px; font-weight: 700; line-height: 1.25; max-width: 11em;
+}
+.t-rente .p-klein { margin-top: auto; padding-top: 26px; letter-spacing: .06em; line-height: 1.4; }
+
+/* ons resultaat: het aantal waarover gemeten is hoort er direct onder — een
+   percentage zonder noemer is een reclamekreet */
+.t-resultaat .p-aantal {
+  margin-top: 14px; font-size: 34px; font-weight: 500; color: var(--iris-bruin);
+}
+.t-resultaat .p-pad-strip { margin-top: auto; height: 60px; color: var(--comfort-beige); }
+.t-resultaat .p-pad-strip svg { height: 100%; width: auto; display: block; }

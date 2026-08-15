@@ -42,6 +42,19 @@ async function laadLogo() {
   return cache.logo;
 }
 
+async function laadCheckQR() {
+  // de QR naar de gratis waardecheck — dezelfde die op de wikkelfolder staat.
+  // Als data-URI, anders valt hij weg bij de PNG-export (die rendert de poster
+  // via een SVG-foreignObject en kan geen externe bestanden ophalen).
+  if (cache.checkQR !== undefined) return cache.checkQR;
+  try {
+    cache.checkQR = await fetchDataURL("qr-waardecheck.png");
+  } catch (fout) {
+    cache.checkQR = null;          // liever geen QR dan een gebroken plaatje
+  }
+  return cache.checkQR;
+}
+
 function naarDataURL(blob) {
   return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
 }
@@ -168,6 +181,45 @@ const SJABLONEN = {
       { id: "duiding", label: "Wat betekent het?", type: "textarea", std: "Wat betekent dit voor jouw woning? We vertellen het je graag — persoonlijk." },
       { id: "bron",   label: "Bron", std: "Bron: NVM · Q2 2026" }
     ]
+  },
+
+  /* ---- drie posts om NIEUWE KLANTEN te vinden (Robbie 15-08-2026) ----
+     Alle drie draaien op cijfers die het dashboard al heeft, zodat ze per
+     gemeente en per kwartaal opnieuw te maken zijn zonder iets te verzinnen.
+     De standaardwaarden hieronder zijn ECHTE cijfers van Eindhoven, zodat je
+     meteen ziet wat er hoort te staan. */
+
+  waarde: {
+    naam: "Waardecheck", foto: false,
+    velden: [
+      { id: "cijfer", label: "Prijs per m²", std: "€ 4.875" },
+      { id: "label",  label: "Waar en wanneer", std: "per m² in Eindhoven, afgelopen kwartaal" },
+      { id: "duiding", label: "De uitnodiging", type: "textarea",
+        std: "Benieuwd wat dat voor jouw huis betekent? Doe de gratis waardecheck — twee minuten, geen verplichting." },
+      { id: "bron", label: "Bron", std: "Bron: NVM-transactiecijfers · 2e kwartaal 2026" }
+    ]
+  },
+  rente: {
+    naam: "Rentekorting", foto: false,
+    velden: [
+      { id: "cijfer", label: "Gemiddelde waardestijging", std: "51%" },
+      { id: "label",  label: "Waarover gaat dat?", std: "meer waard dan toen wij ze verkochten" },
+      { id: "punten", label: "Punten lagere lening/waarde", std: "31" },
+      { id: "duiding", label: "Het verhaal", type: "textarea",
+        std: "Goed nieuws als je wilt verkopen. Maar ook als je blijft: je hypotheek groeide niet mee, dus de verhouding tussen je lening en de waarde is gezakt. Zak je onder een grens van je bank, dan kun je vragen om een lagere risico-opslag — binnen je bestaande hypotheek, zonder oversluiten." },
+      { id: "klein", label: "De kleine letters", type: "textarea",
+        std: "Een indicatie op basis van de marktontwikkeling — geen taxatie en geen financieel advies. Je bank bepaalt of en welke korting geldt." }
+    ]
+  },
+  resultaat: {
+    naam: "Ons resultaat", foto: false,
+    velden: [
+      { id: "cijfer", label: "Het cijfer", std: "+2,6%" },
+      { id: "label",  label: "Wat is het?", std: "kregen onze verkopers gemiddeld bóven de vraagprijs" },
+      { id: "aantal", label: "Waarover gemeten", std: "over de laatste 116 verkopen" },
+      { id: "duiding", label: "De afsluiter", type: "textarea",
+        std: "Geen belofte, gewoon wat er in de akte stond." }
+    ]
   }
 };
 
@@ -260,6 +312,51 @@ const RENDER = {
       <div class="p-bron">${esc(v.bron)}</div>
       ${bottomrow(tel)}
     </div>`;
+  },
+
+  /* ---- de drie leadposts (15-08-2026) ---- */
+
+  waarde(v, tel) {
+    // de waardecheck-QR staat al in deze map (dezelfde als op de wikkelfolder)
+    const qr = cache.checkQR
+      ? `<img class="p-qr" src="${cache.checkQR}" alt="QR naar de waardecheck">` : "";
+    return `<div class="p-pad">
+      ${brandrow("var(--warm-oranje)")}
+      <span class="p-kicker">Wat is jouw huis waard?</span>
+      <div class="p-cijfer" data-fit="120">${esc(v.cijfer)}</div>
+      <div class="p-cijferlabel" data-fit="34">${esc(v.label)}</div>
+      <div class="p-duiding serif">${esc(v.duiding)}</div>
+      <div class="p-qrrow">${qr}<span class="p-qrtekst">Scan en doe de<br>gratis waardecheck</span></div>
+      <div class="p-bron">${esc(v.bron)}</div>
+      ${bottomrow(tel)}
+    </div>`;
+  },
+  rente(v, tel) {
+    return `<div class="p-pad">
+      ${brandrow("var(--warm-oranje)")}
+      <span class="p-kicker">Je huis werd meer waard</span>
+      <div class="p-tweeluik">
+        <div><div class="p-cijfer p-cijfer--klein" data-fit="86">${esc(v.cijfer)}</div>
+          <div class="p-tweeluik-label">${esc(v.label)}</div></div>
+        <div><div class="p-cijfer p-cijfer--klein" data-fit="86">−${esc(v.punten)}</div>
+          <div class="p-tweeluik-label">punten lagere verhouding<br>lening / waarde</div></div>
+      </div>
+      <div class="p-duiding serif">${esc(v.duiding)}</div>
+      <div class="p-klein">${esc(v.klein)}</div>
+      ${bottomrow(tel)}
+    </div>`;
+  },
+  resultaat(v, tel) {
+    return `<div class="p-pad">
+      ${brandrow("var(--warm-oranje)")}
+      <span class="p-kicker">Ons resultaat</span>
+      <div class="p-cijfer" data-fit="120">${esc(v.cijfer)}</div>
+      <div class="p-cijferlabel" data-fit="34">${esc(v.label)}</div>
+      <div class="p-aantal">${esc(v.aantal)}</div>
+      <div class="p-pad-strip">${padStrip()}</div>
+      <div class="p-duiding serif">${esc(v.duiding)}</div>
+      ${bottomrow(tel)}
+    </div>`;
   }
 };
 
@@ -268,6 +365,7 @@ let renderTeller = 0;
 async function render() {
   const mijnBeurt = ++renderTeller;
   await laadLogo();
+  if (state.template === "waarde") await laadCheckQR();
 
   // standaardfoto klaarzetten indien nodig
   const sj = SJABLONEN[state.template];
