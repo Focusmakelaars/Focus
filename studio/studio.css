@@ -42,7 +42,10 @@ em{font-family:var(--font-serif);font-style:italic}
   background:rgba(247,243,235,.85);backdrop-filter:blur(10px);
   position:sticky;top:0;z-index:50;
 }
-.topbar__brand{display:flex;align-items:center;gap:.9rem}
+.topbar__brand{display:flex;align-items:center;gap:.85rem}
+/* het echte woordmerk in plaats van getypte tekst (brandbook: nooit "Focus" typen) */
+.topbar__logo{height:32px;width:auto;display:block;animation:opkomen .5s var(--ease) both}
+@keyframes opkomen{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .topbar__merk svg{width:44px;height:44px;color:var(--warm-oranje);display:block;animation:draai 1.1s var(--ease) both}
 @keyframes draai{from{transform:rotate(-90deg) scale(.6);opacity:0}to{transform:none;opacity:1}}
 .topbar__brand strong{display:block;font-size:1.25rem;font-weight:700;letter-spacing:-.01em}

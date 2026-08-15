@@ -1371,14 +1371,31 @@ async function edKies(compactObj) {
       } catch { /* foto overslaan */ }
     }
     if (mijn !== edKiesNr) return;
-    // lijst van zaken ophalen
-    ed.lvz = []; ed.lvzOverrides = {};
+    // Lijst van zaken ophalen. EERST onze eigen lijst uit het dashboard: die is
+    // door de verkoper zelf ingevuld via zijn klantlink (besluit Robbie: wij
+    // vervangen Realworks hierin). Draait de Studio niet ingebed, of staat er
+    // nog niets in het dossier, dan blijft Realworks de terugval — zo werkt de
+    // brochure ook voor panden waar het dossier nog niet is ingevuld.
+    ed.lvz = []; ed.lvzOverrides = {}; ed.lvzBron = null;
+    laad("Lijst van zaken ophalen…");
     try {
-      laad("Lijst van zaken ophalen…");
-      const lvzData = await (await rwFetch(`/lijstvanzaken/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
-      if (mijn !== edKiesNr) return;
-      ed.lvz = edLvzRijen(lvzData);
-    } catch { /* geen lijst beschikbaar */ }
+      const eigen = await fetch(
+        `/api/lijstvanzaken/brochure?objectcode=${encodeURIComponent(compactObj.objectcode)}`,
+        { credentials: "same-origin" });
+      if (eigen.ok) {
+        const j = await eigen.json();
+        if (mijn !== edKiesNr) return;
+        if ((j.rijen || []).length) { ed.lvz = j.rijen; ed.lvzBron = "focus"; }
+      }
+    } catch { /* dashboard niet bereikbaar: gewoon door naar Realworks */ }
+    if (!ed.lvz.length) {
+      try {
+        const lvzData = await (await rwFetch(`/lijstvanzaken/${compactObj.afdelingscode}/${compactObj.objectcode}`)).json();
+        if (mijn !== edKiesNr) return;
+        ed.lvz = edLvzRijen(lvzData);
+        if (ed.lvz.length) ed.lvzBron = "realworks";
+      } catch { /* geen lijst beschikbaar */ }
+    }
     // locatiekaart ophalen (OpenStreetMap via proxy)
     try {
       laad("Locatiekaart maken…");
@@ -2149,7 +2166,7 @@ function poortInit() {
 /* ---------- events ---------- */
 function init() {
   poortInit();
-  $("#topBeeldmerk").innerHTML = beeldmerkSVG();
+  // de topbar toont het echte woordmerk (img), dus geen getekend beeldmerk meer
   // versienummer uit de cache-buster: klopt altijd met de echt geladen studio.js
   const jsSrc = ($("script[src^='studio.js']") || {}).src || "";
   $("#topVersie").textContent = "v" + ((jsSrc.match(/v=(\d+)/) || [])[1] || "?");
