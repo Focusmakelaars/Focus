@@ -60,9 +60,9 @@ button { font: inherit; cursor: pointer; border: 0; background: none; color: inh
   padding-block: .4rem .2rem;
 }
 .top a { color: inherit; text-decoration: none; }
-.merk { display: inline-flex; align-items: center; gap: .6rem; font-weight: 700; font-size: 1.02rem; }
-.merk svg { width: 30px; height: 30px; color: var(--warm-oranje); }
-.merk .serif { color: var(--warm-oranje); font-weight: 450; }
+/* officieel woordmerk-SVG uit assets\logo (nooit een getypt "logo") */
+.merk { display: inline-flex; align-items: center; }
+.merk img { height: 30px; width: auto; display: block; }
 .top__site { font-size: .85rem; font-weight: 600; color: var(--ink-soft); }
 .top__site:hover { color: var(--warm-oranje); }
 

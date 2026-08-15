@@ -1,15 +1,18 @@
 /* ============================================================
    FOCUS WAARDECHECK — logica
    Indicatieve woningwaarde op basis van mediane NVM-
-   transactieprijzen per m² (feb–jul 2026), per gemeente en
-   woningtype. Indicatie ≠ taxatie: de CTA brengt de bezoeker
-   naar een gratis waardebepaling door de juiste vestiging.
+   transactieprijzen per m², per gemeente en woningtype.
+   Indicatie ≠ taxatie: de CTA brengt de bezoeker naar een
+   gratis waardebepaling door de juiste vestiging.
+
+   De cijfers hieronder zijn GEGENEREERD — niet met de hand
+   bijwerken. Nieuwe NVM-dump geplaatst? Draai:
+     python focus-marktdata\maak_waardecheck.py
+   Dat pakt automatisch de laatste vier AFGERONDE kwartalen.
    ============================================================ */
 
 (() => {
 "use strict";
-
-const PEILDATUM = "februari t/m juli 2026";
 
 const VESTIGINGEN = {
   "Helmond":      { tel: "0492 - 792 172",  mail: "helmond@focusmakelaars.nl" },
@@ -20,33 +23,37 @@ const VESTIGINGEN = {
   "de Meierij":   { tel: "06 - 50 62 77 49", mail: "meierij@focusmakelaars.nl" }
 };
 
-/* m2 = gewogen mediane transactieprijs per m² (feb–jul 2026), n = aantal transacties */
+/* >>> CIJFERS — automatisch gegenereerd door focus-marktdata\maak_waardecheck.py <<< */
+const PEILDATUM = "3e kwartaal 2025 t/m 2e kwartaal 2026";
+/* gewogen mediane transactieprijs per m2 over 3e kwartaal 2025 t/m 2e kwartaal 2026; n = aantal transacties.
+   Uitsluitend AFGERONDE kwartalen — bron: NVM/VGM via focus-marktdata. */
 const DATA = {
- "Best":{v:"Eindhoven",loop:29,verkocht:212,t:{"Tussenwoning":[4427,66],"Hoekwoning":[4539,43],"2-onder-1-kapwoning":[4445,39],"Vrijstaande woning":[4744,36],"Appartement":[5588,28],"Totaal":[4660,212]}},
- "Beverwijk":{v:"Kennemerland",loop:30,verkocht:249,t:{"Tussenwoning":[4355,60],"Hoekwoning":[4557,38],"2-onder-1-kapwoning":[4692,26],"Vrijstaande woning":[5079,18],"Appartement":[4807,107],"Totaal":[4667,249]}},
- "Breda":{v:"Breda",loop:24,verkocht:1318,t:{"Tussenwoning":[4442,401],"Hoekwoning":[4499,187],"2-onder-1-kapwoning":[4777,141],"Vrijstaande woning":[5348,115],"Appartement":[5119,474],"Totaal":[4808,1318]}},
- "Castricum":{v:"Kennemerland",loop:31,verkocht:227,t:{"Tussenwoning":[4237,62],"Hoekwoning":[4958,38],"2-onder-1-kapwoning":[5107,35],"Vrijstaande woning":[6116,34],"Appartement":[5698,58],"Totaal":[5146,227]}},
- "Drimmelen":{v:"Breda",loop:43,verkocht:178,t:{"Tussenwoning":[3833,42],"Hoekwoning":[4202,24],"2-onder-1-kapwoning":[4224,54],"Vrijstaande woning":[4403,45],"Appartement":[5023,13],"Totaal":[4232,178]}},
- "Eindhoven":{v:"Eindhoven",loop:32,verkocht:1605,t:{"Tussenwoning":[4436,536],"Hoekwoning":[4427,217],"2-onder-1-kapwoning":[4591,102],"Vrijstaande woning":[5041,54],"Appartement":[5294,696],"Totaal":[4837,1605]}},
- "Etten-Leur":{v:"Breda",loop:24,verkocht:277,t:{"Tussenwoning":[3765,102],"Hoekwoning":[3974,57],"2-onder-1-kapwoning":[4379,35],"Vrijstaande woning":[4466,48],"Appartement":[4802,35],"Totaal":[4138,277]}},
- "Geertruidenberg":{v:"Breda",loop:35,verkocht:136,t:{"Tussenwoning":[3680,55],"Hoekwoning":[3736,17],"2-onder-1-kapwoning":[4036,29],"Vrijstaande woning":[4397,18],"Appartement":[4935,16],"Totaal":[4017,136]}},
- "Geldrop-Mierlo":{v:"Eindhoven",loop:28,verkocht:255,t:{"Tussenwoning":[4056,90],"Hoekwoning":[4190,46],"2-onder-1-kapwoning":[4109,44],"Vrijstaande woning":[4869,41],"Appartement":[5154,34],"Totaal":[4367,255]}},
- "Heemskerk":{v:"Kennemerland",loop:32,verkocht:213,t:{"Tussenwoning":[4259,62],"Hoekwoning":[4459,36],"2-onder-1-kapwoning":[5270,19],"Vrijstaande woning":[5618,15],"Appartement":[5177,79],"Totaal":[4819,213]}},
- "Heiloo":{v:"Kennemerland",loop:47,verkocht:159,t:{"Tussenwoning":[4425,31],"Hoekwoning":[4772,26],"2-onder-1-kapwoning":[5377,34],"Vrijstaande woning":[5922,34],"Appartement":[5685,34],"Totaal":[5275,159]}},
- "Helmond":{v:"Helmond",loop:28,verkocht:516,t:{"Tussenwoning":[3695,171],"Hoekwoning":[3821,88],"2-onder-1-kapwoning":[4115,101],"Vrijstaande woning":[4369,56],"Appartement":[4618,100],"Totaal":[4051,516]}},
- "Maassluis":{v:"Rotterdam",loop:42,verkocht:235,t:{"Tussenwoning":[4233,77],"Hoekwoning":[4164,40],"2-onder-1-kapwoning":[4082,8],"Vrijstaande woning":[5360,3],"Appartement":[4657,106],"Totaal":[4439,235]}},
- "Meierijstad":{v:"de Meierij",loop:40,verkocht:542,t:{"Tussenwoning":[3812,142],"Hoekwoning":[4215,87],"2-onder-1-kapwoning":[4286,130],"Vrijstaande woning":[4424,108],"Appartement":[4917,75],"Totaal":[4265,542]}},
- "Midden-Delfland":{v:"Rotterdam",loop:32,verkocht:125,t:{"Tussenwoning":[4802,53],"Hoekwoning":[5005,30],"2-onder-1-kapwoning":[5124,14],"Vrijstaande woning":[5684,6],"Appartement":[5712,22],"Totaal":[5089,125]}},
- "Oirschot":{v:"Eindhoven",loop:54,verkocht:117,t:{"Tussenwoning":[4243,26],"Hoekwoning":[4525,28],"2-onder-1-kapwoning":[4512,26],"Vrijstaande woning":[5164,31],"Appartement":[5668,5],"Totaal":[4675,117]}},
- "Oosterhout":{v:"Breda",loop:29,verkocht:386,t:{"Tussenwoning":[3806,120],"Hoekwoning":[3817,59],"2-onder-1-kapwoning":[4164,77],"Vrijstaande woning":[4598,45],"Appartement":[4732,85],"Totaal":[4175,386]}},
- "Rotterdam":{v:"Rotterdam",loop:34,verkocht:4108,t:{"Tussenwoning":[4328,604],"Hoekwoning":[4735,241],"2-onder-1-kapwoning":[5313,84],"Vrijstaande woning":[5732,57],"Appartement":[4777,3122],"Totaal":[4733,4108]}},
- "Someren":{v:"Helmond",loop:27,verkocht:92,t:{"Tussenwoning":[3892,18],"Hoekwoning":[4580,6],"2-onder-1-kapwoning":[3916,37],"Vrijstaande woning":[4907,17],"Appartement":[5042,14],"Totaal":[4309,92]}},
- "Son en Breugel":{v:"Eindhoven",loop:24,verkocht:104,t:{"Tussenwoning":[3997,26],"Hoekwoning":[4654,17],"2-onder-1-kapwoning":[4360,39],"Vrijstaande woning":[5210,14],"Appartement":[5481,7],"Totaal":[4511,104]}},
- "Uitgeest":{v:"Kennemerland",loop:29,verkocht:76,t:{"Tussenwoning":[4421,21],"Hoekwoning":[4361,18],"2-onder-1-kapwoning":[5067,17],"Vrijstaande woning":[5772,5],"Appartement":[6177,13],"Totaal":[4985,76]}},
- "Veldhoven":{v:"Eindhoven",loop:42,verkocht:313,t:{"Tussenwoning":[4563,93],"Hoekwoning":[4574,46],"2-onder-1-kapwoning":[4469,73],"Vrijstaande woning":[4799,47],"Appartement":[5215,54],"Totaal":[4691,313]}},
- "Vlaardingen":{v:"Rotterdam",loop:33,verkocht:457,t:{"Tussenwoning":[4233,126],"Hoekwoning":[4542,60],"2-onder-1-kapwoning":[4778,21],"Vrijstaande woning":[5123,8],"Appartement":[4096,241],"Totaal":[4242,457]}},
- "Zaanstad":{v:"Kennemerland",loop:36,verkocht:1009,t:{"Tussenwoning":[4290,352],"Hoekwoning":[4461,187],"2-onder-1-kapwoning":[4838,99],"Vrijstaande woning":[4891,71],"Appartement":[5275,300],"Totaal":[4711,1009]}}
+ "Best":{v:"Eindhoven",loop:28,verkocht:386,t:{"Tussenwoning":[4280,130],"Hoekwoning":[4384,75],"2-onder-1-kapwoning":[4357,78],"Vrijstaande woning":[4653,54],"Appartement":[5514,49],"Totaal":[4524,386]}},
+ "Beverwijk":{v:"Kennemerland",loop:26,verkocht:520,t:{"Tussenwoning":[4250,130],"Hoekwoning":[4469,62],"2-onder-1-kapwoning":[4629,58],"Vrijstaande woning":[4864,29],"Appartement":[4767,241],"Totaal":[4592,520]}},
+ "Breda":{v:"Breda",loop:23,verkocht:2634,t:{"Tussenwoning":[4404,799],"Hoekwoning":[4435,361],"2-onder-1-kapwoning":[4742,284],"Vrijstaande woning":[5292,220],"Appartement":[5039,970],"Totaal":[4752,2634]}},
+ "Castricum":{v:"Kennemerland",loop:32,verkocht:479,t:{"Tussenwoning":[4356,112],"Hoekwoning":[4743,78],"2-onder-1-kapwoning":[4902,76],"Vrijstaande woning":[5583,79],"Appartement":[5413,134],"Totaal":[5004,479]}},
+ "Drimmelen":{v:"Breda",loop:34,verkocht:359,t:{"Tussenwoning":[3897,71],"Hoekwoning":[4128,50],"2-onder-1-kapwoning":[4193,103],"Vrijstaande woning":[4374,112],"Appartement":[5045,23],"Totaal":[4236,359]}},
+ "Eindhoven":{v:"Eindhoven",loop:28,verkocht:3226,t:{"Tussenwoning":[4416,1063],"Hoekwoning":[4433,438],"2-onder-1-kapwoning":[4601,190],"Vrijstaande woning":[5021,122],"Appartement":[5362,1413],"Totaal":[4867,3226]}},
+ "Etten-Leur":{v:"Breda",loop:24,verkocht:534,t:{"Tussenwoning":[3722,205],"Hoekwoning":[3895,104],"2-onder-1-kapwoning":[4241,64],"Vrijstaande woning":[4346,89],"Appartement":[4858,72],"Totaal":[4075,534]}},
+ "Geertruidenberg":{v:"Breda",loop:29,verkocht:290,t:{"Tussenwoning":[3724,101],"Hoekwoning":[3785,46],"2-onder-1-kapwoning":[4016,73],"Vrijstaande woning":[4262,38],"Appartement":[4921,32],"Totaal":[4010,290]}},
+ "Geldrop-Mierlo":{v:"Eindhoven",loop:28,verkocht:498,t:{"Tussenwoning":[4010,182],"Hoekwoning":[4228,92],"2-onder-1-kapwoning":[4151,85],"Vrijstaande woning":[4743,79],"Appartement":[5199,60],"Totaal":[4334,498]}},
+ "Heemskerk":{v:"Kennemerland",loop:28,verkocht:404,t:{"Tussenwoning":[4290,123],"Hoekwoning":[4421,75],"2-onder-1-kapwoning":[5016,44],"Vrijstaande woning":[5648,30],"Appartement":[5088,132],"Totaal":[4755,404]}},
+ "Heiloo":{v:"Kennemerland",loop:50,verkocht:307,t:{"Tussenwoning":[4596,60],"Hoekwoning":[4744,53],"2-onder-1-kapwoning":[5174,56],"Vrijstaande woning":[5782,70],"Appartement":[5828,68],"Totaal":[5270,307]}},
+ "Helmond":{v:"Helmond",loop:26,verkocht:1031,t:{"Tussenwoning":[3737,341],"Hoekwoning":[3805,174],"2-onder-1-kapwoning":[4015,193],"Vrijstaande woning":[4277,119],"Appartement":[4445,204],"Totaal":[4003,1031]}},
+ "Maassluis":{v:"Rotterdam",loop:34,verkocht:433,t:{"Tussenwoning":[4149,142],"Hoekwoning":[4107,70],"2-onder-1-kapwoning":[4662,13],"Vrijstaande woning":[5883,6],"Appartement":[4460,202],"Totaal":[4327,433]}},
+ "Meierijstad":{v:"de Meierij",loop:35,verkocht:1022,t:{"Tussenwoning":[3814,275],"Hoekwoning":[4139,172],"2-onder-1-kapwoning":[4188,229],"Vrijstaande woning":[4400,202],"Appartement":[4766,144],"Totaal":[4202,1022]}},
+ "Midden-Delfland":{v:"Rotterdam",loop:32,verkocht:222,t:{"Tussenwoning":[4850,78],"Hoekwoning":[5043,49],"2-onder-1-kapwoning":[5232,31],"Vrijstaande woning":[6271,22],"Appartement":[5664,42],"Totaal":[5241,222]}},
+ "Oirschot":{v:"Eindhoven",loop:36,verkocht:244,t:{"Tussenwoning":[4176,66],"Hoekwoning":[4500,37],"2-onder-1-kapwoning":[4542,48],"Vrijstaande woning":[4907,72],"Appartement":[5937,21],"Totaal":[4665,244]}},
+ "Oosterhout":{v:"Breda",loop:25,verkocht:767,t:{"Tussenwoning":[3841,243],"Hoekwoning":[3868,111],"2-onder-1-kapwoning":[3980,154],"Vrijstaande woning":[4524,92],"Appartement":[4582,167],"Totaal":[4116,767]}},
+ "Rotterdam":{v:"Rotterdam",loop:33,verkocht:8272,t:{"Tussenwoning":[4253,1226],"Hoekwoning":[4457,466],"2-onder-1-kapwoning":[5012,158],"Vrijstaande woning":[5597,113],"Appartement":[4777,6309],"Totaal":[4697,8272]}},
+ "Someren":{v:"Helmond",loop:25,verkocht:183,t:{"Tussenwoning":[3974,31],"Hoekwoning":[4440,11],"2-onder-1-kapwoning":[3810,82],"Vrijstaande woning":[4183,37],"Appartement":[4934,22],"Totaal":[4086,183]}},
+ "Son en Breugel":{v:"Eindhoven",loop:26,verkocht:194,t:{"Tussenwoning":[3865,42],"Hoekwoning":[4426,38],"2-onder-1-kapwoning":[4234,69],"Vrijstaande woning":[4724,24],"Appartement":[5305,21],"Totaal":[4368,194]}},
+ "Uitgeest":{v:"Kennemerland",loop:26,verkocht:146,t:{"Tussenwoning":[4276,45],"Hoekwoning":[4397,30],"2-onder-1-kapwoning":[4825,32],"Vrijstaande woning":[5525,14],"Appartement":[5621,25],"Totaal":[4771,146]}},
+ "Veldhoven":{v:"Eindhoven",loop:36,verkocht:634,t:{"Tussenwoning":[4561,193],"Hoekwoning":[4525,104],"2-onder-1-kapwoning":[4580,131],"Vrijstaande woning":[5017,105],"Appartement":[5121,101],"Totaal":[4724,634]}},
+ "Vlaardingen":{v:"Rotterdam",loop:30,verkocht:891,t:{"Tussenwoning":[4190,241],"Hoekwoning":[4352,113],"2-onder-1-kapwoning":[4877,38],"Vrijstaande woning":[4813,17],"Appartement":[3989,482],"Totaal":[4143,891]}},
+ "Zaanstad":{v:"Kennemerland",loop:33,verkocht:1972,t:{"Tussenwoning":[4292,660],"Hoekwoning":[4439,351],"2-onder-1-kapwoning":[4810,211],"Vrijstaande woning":[4844,162],"Appartement":[5300,588],"Totaal":[4720,1972]}}
 };
+/* >>> EINDE CIJFERS <<< */
 
 const STAAT = {
   moderniseren: { factor: 0.93, tekst: "toe aan modernisering" },
