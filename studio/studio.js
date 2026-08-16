@@ -184,10 +184,12 @@ const SJABLONEN = {
   },
 
   /* ---- drie posts om NIEUWE KLANTEN te vinden (Robbie 15-08-2026) ----
-     Alle drie draaien op cijfers die het dashboard al heeft, zodat ze per
-     gemeente en per kwartaal opnieuw te maken zijn zonder iets te verzinnen.
-     De standaardwaarden hieronder zijn ECHTE cijfers van Eindhoven, zodat je
-     meteen ziet wat er hoort te staan. */
+     Twee draaien op cijfers die het dashboard al heeft, zodat ze per gemeente
+     en per kwartaal opnieuw te maken zijn zonder iets te verzinnen; de
+     standaardwaarden zijn ECHTE cijfers van Eindhoven. De derde is bewust géén
+     cijfer maar een klant die het zelf zegt — drie grafieken achter elkaar op
+     je tijdlijn leest niemand, en voor iemand die makelaars vergelijkt weegt
+     een echte ervaring zwaarder dan nóg een percentage. */
 
   waarde: {
     naam: "Waardecheck", foto: false,
@@ -199,16 +201,17 @@ const SJABLONEN = {
       { id: "bron", label: "Bron", std: "Bron: NVM-transactiecijfers · 2e kwartaal 2026" }
     ]
   },
-  rente: {
-    naam: "Rentekorting", foto: false,
+  review: {
+    naam: "Klant aan het woord", foto: false,
     velden: [
-      { id: "cijfer", label: "Gemiddelde waardestijging", std: "51%" },
-      { id: "label",  label: "Waarover gaat dat?", std: "meer waard dan toen wij ze verkochten" },
-      { id: "punten", label: "Punten lagere lening/waarde", std: "31" },
-      { id: "duiding", label: "Het verhaal", type: "textarea",
-        std: "Goed nieuws als je wilt verkopen. Maar ook als je blijft: je hypotheek groeide niet mee, dus de verhouding tussen je lening en de waarde is gezakt. Zak je onder een grens van je bank, dan kun je vragen om een lagere risico-opslag — binnen je bestaande hypotheek, zonder oversluiten." },
-      { id: "klein", label: "De kleine letters", type: "textarea",
-        std: "Een indicatie op basis van de marktontwikkeling — geen taxatie en geen financieel advies. Je bank bepaalt of en welke korting geldt." }
+      { id: "quote", label: "Wat de klant zei", type: "textarea",
+        std: "Ze hebben ons door het hele traject geloodst zonder dat we ons ooit een nummer voelden. Binnen drie weken verkocht, en bij elke stap wisten we waar we aan toe waren." },
+      { id: "wie", label: "Van wie is de quote?", std: "Familie Jansen" },
+      { id: "context", label: "Wat deden we voor ze?", std: "verkocht hun woning in Geldrop" },
+      { id: "score", label: "Score (leeg = verbergen)", std: "9,4" },
+      { id: "scorebron", label: "Waar komt die score vandaan?", std: "gemiddeld op Funda" },
+      { id: "slot", label: "Afsluiter (leeg = verbergen)", type: "textarea",
+        std: "Zo begeleiden we ook jouw verkoop. Even kennismaken? Bel gerust." }
     ]
   },
   resultaat: {
@@ -331,18 +334,25 @@ const RENDER = {
       ${bottomrow(tel)}
     </div>`;
   },
-  rente(v, tel) {
-    return `<div class="p-pad">
+  review(v, tel) {
+    // ⚠ GEEN CIJFER. Deze post moet er anders uitzien dan de andere twee: het
+    // beeldmerk groot op de achtergrond, de quote in de serif-cursief van het
+    // merk. Wie er drie grafieken achter elkaar op zijn tijdlijn zet, wordt
+    // weggescrold.
+    const score = (v.score || "").trim();
+    const slot = (v.slot || "").trim();
+    return `<div class="p-beeldmerk-bg">${beeldmerkSVG()}</div>
+    <div class="p-pad">
       ${brandrow("var(--warm-oranje)")}
-      <span class="p-kicker">Je huis werd meer waard</span>
-      <div class="p-tweeluik">
-        <div><div class="p-cijfer p-cijfer--klein" data-fit="86">${esc(v.cijfer)}</div>
-          <div class="p-tweeluik-label">${esc(v.label)}</div></div>
-        <div><div class="p-cijfer p-cijfer--klein" data-fit="86">−${esc(v.punten)}</div>
-          <div class="p-tweeluik-label">punten lagere verhouding<br>lening / waarde</div></div>
+      <span class="p-kicker">Klant aan het woord</span>
+      <div class="p-review serif" data-fit="46">&bdquo;${esc(v.quote)}&rdquo;</div>
+      <div class="p-reviewwie">
+        <div class="p-naam">${esc(v.wie)}</div>
+        <div class="p-rol">${esc(v.context)}</div>
       </div>
-      <div class="p-duiding serif">${esc(v.duiding)}</div>
-      <div class="p-klein">${esc(v.klein)}</div>
+      ${score ? `<div class="p-scorerow"><span class="p-score">${esc(score)}</span>
+        <span class="p-scorebron">${esc(v.scorebron)}</span></div>` : ""}
+      ${slot ? `<div class="p-duiding serif">${esc(slot)}</div>` : ""}
       ${bottomrow(tel)}
     </div>`;
   },

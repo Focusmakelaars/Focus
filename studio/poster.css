@@ -267,14 +267,14 @@
 .t-waarde .p-cijferlabel, .t-resultaat .p-cijferlabel {
   margin-top: 20px; font-size: 52px; font-weight: 700; letter-spacing: -0.01em; max-width: 16em;
 }
-.t-waarde .p-duiding, .t-resultaat .p-duiding, .t-rente .p-duiding {
+.t-waarde .p-duiding, .t-resultaat .p-duiding, .t-review .p-duiding {
   margin-top: 34px; font-size: 42px; line-height: 1.32; color: var(--iris-bruin); max-width: 18em;
 }
-.t-waarde .p-bron, .t-rente .p-klein {
+.t-waarde .p-bron {
   font-size: 24px; letter-spacing: .14em; text-transform: uppercase; opacity: .55; font-weight: 500;
 }
 .t-waarde .p-bron { margin-top: 26px; }
-.t-waarde .p-bottom, .t-rente .p-bottom, .t-resultaat .p-bottom {
+.t-waarde .p-bottom, .t-review .p-bottom, .t-resultaat .p-bottom {
   margin-top: 40px; border-top: 2px solid rgba(29,32,35,.14); padding-top: 34px;
 }
 
@@ -287,24 +287,6 @@
 .t-waarde .p-qr { width: 150px; height: 150px; display: block; border-radius: 12px; }
 .t-waarde .p-qrtekst { font-size: 34px; font-weight: 700; line-height: 1.25; }
 
-/* rentekorting: twee cijfers naast elkaar — de stijging én wat dat met de
-   verhouding lening/waarde doet. Dat tweede getal is het hele punt. */
-.t-rente .p-kicker { margin-top: 72px; }
-.t-rente.f11 .p-kicker { margin-top: 44px; }
-.t-rente .p-tweeluik {
-  margin-top: 34px; display: flex; gap: 56px; align-items: flex-start;
-}
-.t-rente .p-tweeluik > div { flex: 1; }
-.t-rente .p-cijfer--klein {
-  font-size: 150px; font-weight: 900; line-height: .95; letter-spacing: -0.03em;
-  color: var(--warm-oranje);
-}
-.t-rente.f11 .p-cijfer--klein { font-size: 124px; }
-.t-rente .p-tweeluik-label {
-  margin-top: 12px; font-size: 34px; font-weight: 700; line-height: 1.25; max-width: 11em;
-}
-.t-rente .p-klein { margin-top: auto; padding-top: 26px; letter-spacing: .06em; line-height: 1.4; }
-
 /* ons resultaat: het aantal waarover gemeten is hoort er direct onder — een
    percentage zonder noemer is een reclamekreet */
 .t-resultaat .p-aantal {
@@ -312,3 +294,27 @@
 }
 .t-resultaat .p-pad-strip { margin-top: auto; height: 60px; color: var(--comfort-beige); }
 .t-resultaat .p-pad-strip svg { height: 100%; width: auto; display: block; }
+
+/* klant aan het woord — bewust GEEN cijferpost: de quote is het beeld.
+   Zelfde opzet als de team-post (beeldmerk groot op de achtergrond, serif
+   cursief), maar dan met de klant aan het woord in plaats van de makelaar. */
+.t-review .p-kicker { margin-top: 72px; }
+.t-review.f11 .p-kicker { margin-top: 44px; }
+.t-review .p-review {
+  margin-top: 40px; font-size: 62px; line-height: 1.22; letter-spacing: -0.01em;
+  color: var(--pupil-zwart); max-width: 15em;
+}
+.t-review.f11 .p-review { font-size: 54px; }
+.t-review .p-reviewwie { margin-top: 40px; }
+.t-review .p-reviewwie .p-naam { font-size: 40px; font-weight: 700; }
+.t-review .p-reviewwie .p-rol { margin-top: 6px; font-size: 32px; color: var(--iris-bruin); }
+.t-review .p-scorerow {
+  margin-top: auto; display: flex; align-items: baseline; gap: 18px;
+  border-top: 2px solid rgba(29,32,35,.14); padding-top: 30px;
+}
+.t-review .p-score {
+  font-size: 92px; font-weight: 900; line-height: 1; letter-spacing: -0.03em;
+  color: var(--warm-oranje);
+}
+.t-review .p-scorebron { font-size: 30px; font-weight: 500; color: var(--iris-bruin); }
+.t-review .p-duiding { margin-top: 26px; }
